@@ -9,3 +9,10 @@ The dataset consists of 1000 stereo images (one left and one right image). Each 
 ![Sunny image](figs/image_2.png)
 ![Cloudy image](figs/image_3.png)
 *Figure: Two images (index 2 and 3) from the dataset (left and right view) with labels 'sunny' and 'cloudy'.*
+
+## Symmetries
+
+### Dihedral group $D_2$
+
+The symmetry group of a rectangle is the dihedral group $D_2$, isomorphic to the Klein four-group $\mathbb{Z}_2\times\mathbb{Z}_2$.
+
