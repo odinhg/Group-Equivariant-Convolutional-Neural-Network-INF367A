@@ -14,5 +14,17 @@ The dataset consists of 1000 stereo images (one left and one right image). Each 
 
 ### Dihedral group $D_2$
 
-The symmetry group of a rectangle is the dihedral group $D_2$, isomorphic to the Klein four-group $\mathbb{Z}_2\times\mathbb{Z}_2$.
+The symmetry group of a rectangle is the dihedral group $D_2$, isomorphic to the Klein four-group $\mathbb{Z}_2\times\mathbb{Z}_2$. Geometrically, the group $D_2$ can be described by the following symmetries:
+- $e$: rotation by 0 (identity),
+- $r$: rotation by $\pi$,
+- $m_h$: mirroring along the horizontal axis, and
+- $m_v$: mirroring along the vertical axis.
 
+It is easy to write down the Cayley table of $D_2$:
+
+|$D_2$|$e$|$r$|$m_h$|$m_v$|
+|:---|:---:|:---:|:---:|:---:|
+|$e$|$e$|$r$|$m_h$|$m_v$|
+|$r$|$r$|$e$|$m_v$|$m_h$|
+|$m_h$|$m_h$|$m_v$|$e$|$r$|
+|$m_v$|$m_v$|$m_h$|$r$|$e$|
