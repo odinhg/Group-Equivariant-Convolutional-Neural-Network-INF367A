@@ -25,6 +25,35 @@ for i in range(5):
     im.save(f"./figs/image_{i}.png")
 """
 
+import torch
+
+x = X[678]
+transform = "r"
+
+# From (2, h, w, 3) to (w, h, 6)
+y = np.swapaxes(x, 0, 2)
+y = y.reshape(y.shape[0], y.shape[1], 6)
+
+if transform == "mh":
+    y = np.flip(y, 1)
+elif transform == "mv":
+    y = np.flip(y, 0)
+    y = np.roll(y, 3, axis=2)
+elif transform == "r":
+    y = np.flip(y, 0)
+    y = np.flip(y, 1)
+    y = np.roll(y, 3, axis=2)
+
+
+# From (w, h, 6) to (2, h, w, 3)
+y = y.reshape(y.shape[0], y.shape[1], 2, 3)
+y = np.swapaxes(y, 0, 2)
+
+im = Image.fromarray(np.vstack([np.hstack([x[0], x[1]]), np.hstack([y[0], y[1]])]))
+im.show()
+
+
+
 class SymmetryGroup():
     def transform(self, x, B):
         """
@@ -77,7 +106,7 @@ class SymmetryGroup():
             Mirror along horizontal axis 
         """
         x[view] = np.flip(x[view], 0)
-
+"""
 from itertools import product
 
 x = X[678]
@@ -87,6 +116,7 @@ transformed_images = G.all_transforms(x)
 
 #im = Image.fromarray(np.vstack(transformed_images))
 #im.show()
+"""
 
 """
 im = Image.fromarray(np.vstack([x[0], G.r(x)[0], G.mv(x)[0], G.mh(x)[0]]))
