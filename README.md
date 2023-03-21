@@ -35,5 +35,5 @@ The symmetry group of a (non-square) rectangle is the dihedral group $D_2$, isom
 We could let two copies of $D_2$ act on the left and right views independently. In that case, we would have been working with the group $D_2\times D_2\equiv \mathbb{Z}_2^4$ of order $16$. But, as the left and right views are physically coupled in the real-world, we choose to continue with a single copy of $D_2$ acting on our images as shown in the following figure:
 
 ![Group action on stereo image](./docs/symmetry_group.png)
-**Figure:** We have three group elements (in addition to the identity) acting on a stereo image. One rotation shown in red, and two mirror symmetries shown in blue and green around the vertical and horizontal axes, respectively.
+**Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
