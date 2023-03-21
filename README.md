@@ -37,3 +37,11 @@ We could let two copies of $D_2$ act on the left and right views independently. 
 ![Group action on stereo image](./docs/symmetry_group.png)
 **Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
+## Scope of this project 
+
+In this project, we will compare the performance of the following three models:
+- A standard off-the-shelf convolutional neural network (**CNN**), 
+- a convolutional neural network with smoothing (**SmoothCNN**) and 
+- a group equivariant convolutional neural network (**GCNN**).
+
+The learning objective for all models is to predict weather condition (cloudy or sunny) from a stereo image as input. In other words, we are solving a binary regression problem. We report cross entropy loss (also known as log loss) and classification accuracies on the training, validation and test dataset.
