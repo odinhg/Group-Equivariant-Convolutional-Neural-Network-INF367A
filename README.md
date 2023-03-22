@@ -68,10 +68,10 @@ Let $[n]=\{0,1,2,\ldots,n-1\}$ and consider the domain $\Omega = [H]\times [W]$.
 Let $p=(a,b)$ be an element of $\Omega$ and define the group action
 
 $$
-D_2\times\Omega\to\Omega
-$$
-$$
-(g, p)\mapsto g\cdot p
+\begin{aligned}
+D_2\times\Omega&\to\Omega\\
+(g, p)&\mapsto g\cdot p
+\end{aligned}
 $$
 
 on the generators $m_v$ and $m_h$ by letting $m_v\cdot p = (a,W-b)$ and $m_h\cdot p = (H-a, b)$. We then get that $r\cdot p = (H-a,W-b)$ and $e\cdot p = p$ by extending the above map to a group action.
