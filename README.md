@@ -80,11 +80,10 @@ on the generators $m_v$ and $m_h$ by letting $m_v\cdot p = (a,W-b)$ and $m_h\cdo
 We lift the $D_2$-action on $\Omega$ to a $D_2$-action on $\mathcal{X}(\Omega)$ as follows:
 
 $$
-\psi\colon D_2\times\mathcal{X}(\Omega)\to\mathcal{X}(\Omega)
-$$
-
-$$
-(g,x)\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
+\begin{aligned}
+\psi\colon D_2\times\mathcal{X}(\Omega)&\to\mathcal{X}(\Omega)\\
+(g,x)&\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
+\end{aligned}
 $$
 
 Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(p)=x(g\cdot p)$. 
