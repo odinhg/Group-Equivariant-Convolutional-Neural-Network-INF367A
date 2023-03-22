@@ -62,7 +62,7 @@ In practice, *both views are combined* by stacking them horizontally, giving us 
 ## Viewing stereo images as signals
 We now give a more theoretical perspective on the action of $D_2$ on the stereo images. 
 
-Let $[n]=\{0,1,2,\ldots,n-1\}$ and consider the domain $\Omega = [H]\times [W]$. In our case, $H=400$ and $W=1758$. We consider stereo images as 3-dimensional (RGB) signals on $\Omega$. That is, the images are viewed as elements of the vector space $\mathcal{X}(\Omega) = \operatorname{Map}(\Omega, \mathbb{R}^3)$.
+Let $[n]=\lbrace 0,1,2,\ldots,n-1\rbrace$ and consider the domain $\Omega = [H]\times [W]$. In our case, $H=400$ and $W=1758$. We consider stereo images as 3-dimensional (RGB) signals on $\Omega$. That is, the images are viewed as elements of the vector space $\mathcal{X}(\Omega) = \operatorname{Map}(\Omega, \mathbb{R}^3)$.
 
 ### Group action of $D_2$ on $\Omega$
 Let $p=(a,b)$ be an element of $\Omega$ and define the group action
