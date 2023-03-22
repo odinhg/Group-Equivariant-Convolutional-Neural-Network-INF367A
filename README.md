@@ -67,20 +67,20 @@ Let $[n]=\{0,1,2,\ldots,n-1\}$ and consider the domain $\Omega = [H]\times [W]$.
 ### Group action of $D_2$ on $\Omega$
 Let $p=(a,b)$ be an element of $\Omega$ and define the group action
 $$
-\begin{aligned}
-D_2\times\Omega&\to\Omega\\
-(g, p)&\mapsto g\cdot p
-\end{aligned}
+D_2\times\Omega\to\Omega
+$$
+$$
+(g, p)\mapsto g\cdot p
 $$
 on the generators $m_v$ and $m_h$ by letting $m_v\cdot p = (a,W-b)$ and $m_h\cdot p = (H-a, b)$. We then get that $r\cdot p = (H-a,W-b)$ and $e\cdot p = p$ by extending the above map to a group action.
 
 ### Lifting the group action to signals
 We lift the $D_2$-action on $\Omega$ to a $D_2$-action on $\mathcal{X}(\Omega)$ as follows:
 $$
-\begin{aligned}
-\psi\colon D_2\times\mathcal{X}(\Omega)&\to\mathcal{X}(\Omega)\\
-(g,x)&\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
-\end{aligned}
+\psi\colon D_2\times\mathcal{X}(\Omega)\to\mathcal{X}(\Omega)
+$$
+$$
+(g,x)\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
 $$
 
 Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(p)=x(g\cdot p)$. 
