@@ -11,6 +11,8 @@ In this project, we will compare the performance of the following three models:
 
 The learning objective for all models is to predict weather condition (cloudy or sunny) from a stereo image as input. In other words, we are solving a binary regression problem. We report cross entropy loss (also known as log loss) and classification accuracies on the training, validation and test dataset.
 
+Given a set of symmetries acting on our input image, it is reasonable to want the prediction of our network to be invariant to this action. For example, a rotated version of an image should give the same prediction as the original image. Often, we try to solve this by using data augmentation. However, training with augmented data does not guarantee invariance. Also, it is costly both in terms of time and the amount of data needed to approximate invariance with augmentation. Therefore, if we a priori know which symmetries we want our network to be invariant under, it is a better idea to design the network to have this property built-in. We aim to achieve this by using group equivariant convolutional layers followed by some permutation invariant operation (e.g., min, max, sum or arithmetic mean).
+
 ## Dataset
 
 The dataset consists of 1000 stereo images each consisting of one left and one right image. Each image has 3 channels (RGB) with resolution 879x400 (WxH). The possible label values are 'cloudy' (0) and 'sunny' (1). The dataset is perfectly balanced with 500 samples of each label.
