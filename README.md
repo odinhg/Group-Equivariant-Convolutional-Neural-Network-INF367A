@@ -46,15 +46,43 @@ We could let two copies of $D_2$ act on the left and right views independently. 
 ![Group action on stereo image](./docs/symmetry_group.png)
 **Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
-In practice, both views are combined by stacking them horizontally, giving us a single image of size 1758x400 (WxH). The $D_2$ group actions are simply implemented using `torch.flip()` and also supports mini-batches.
+In practice, *both views are combined* by stacking them horizontally, giving us a single image of size 1758x400 (WxH). The $D_2$ group actions are simply implemented using `torch.flip()` and also supports mini-batches.
 
 |Group actions visualized|
 |---|
 |![Original image](figs/original.png)|
-|Original: $e\cdot x$|
+|**Figure:** Trivial group action, $e\cdot x$.|
 |![Rotated](figs/rotated.png)|
-|Rotated CCW by $\pi$ radians: $r\cdot x$|
+|**Figure:** Rotation by $\pi$ CCW, $r\cdot x$.|
 |![Mirrored horizontally](figs/mirrored_horizontal.png)|
-|Mirrored around the horizontal axis: $m_h\cdot x$|
+|**Figure:** Mirroring around the horizontal axis, $m_h\cdot x$.|
 |![Mirrored vertically](figs/mirrored_vertical.png)|
-|Mirrored around the vertical axis: $m_v\cdot x$|
+|**Figure:** Mirroring around the vertical axis, $m_v\cdot x$.|
+
+## Viewing stereo images as signals
+We now give a more theoretical perspective on the action of $D_2$ on the stereo images. 
+
+Let $[n]=\{0,1,2,\ldots,n-1\}$ and consider the domain $\Omega = [H]\times [W]$. In our case, $H=400$ and $W=1758$. We consider stereo images as 3-dimensional (RGB) signals on $\Omega$. That is, the images are viewed as elements of the vector space $\mathcal{X}(\Omega) = \operatorname{Map}(\Omega, \mathbb{R}^3)$.
+
+### Group action of $D_2$ on $\Omega$
+Let $p=(a,b)$ be an element of $\Omega$ and define the group action
+$$
+\begin{align*}
+D_2\times\Omega&\to\Omega\\
+(g, p)&\mapsto g\cdot p
+\end{align*}
+$$
+on the generators $m_v$ and $m_h$ by letting $m_v\cdot p = (a,W-b)$ and $m_h\cdot p = (H-a, b)$. We then get that $r\cdot p = (H-a,W-b)$ and $e\cdot p = p$ by extending the above map to a group action.
+
+### Lifting the group action to signals
+We lift the $D_2$-action on $\Omega$ to a $D_2$-action on $\mathcal{X}(\Omega)$ as follows:
+$$
+\begin{align*}
+\psi\colon D_2\times\mathcal{X}(\Omega)&\to\mathcal{X}(\Omega)\\
+(g,x)&\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
+\end{align*}
+$$
+
+Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(p)=x(g\cdot p)$. 
+
+**Note:** The map $D_2\to\operatorname{Aut} \mathcal{X}(\Omega)$ defined by $g\mapsto \psi(g, -)$ is nothing but the (left) regular representation of $D_2$ on the vector space $\mathcal{X}(\Omega)$.
