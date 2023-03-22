@@ -2,9 +2,18 @@
 ### Project 2 in INF367A : Topological Deep Learning
 **Odin Hoff Gardå, April 2023**
 
+## Scope of this project 
+
+In this project, we will compare the performance of the following three models:
+- A standard off-the-shelf convolutional neural network (**CNN**), 
+- a convolutional neural network with smoothing (**SmoothCNN**) and 
+- a group equivariant convolutional neural network (**GCNN**).
+
+The learning objective for all models is to predict weather condition (cloudy or sunny) from a stereo image as input. In other words, we are solving a binary regression problem. We report cross entropy loss (also known as log loss) and classification accuracies on the training, validation and test dataset.
+
 ## Dataset
 
-The dataset consists of 1000 stereo images each consisting of one left and one right image. Each image has 3 channels (RGB) with resolution 879x400 (w x h). The possible label values are 'cloudy' (0) and 'sunny' (1). The dataset is perfectly balanced with 500 samples of each label.
+The dataset consists of 1000 stereo images each consisting of one left and one right image. Each image has 3 channels (RGB) with resolution 879x400 (WxH). The possible label values are 'cloudy' (0) and 'sunny' (1). The dataset is perfectly balanced with 500 samples of each label.
 
 ![Sunny image](figs/image_2.png)
 ![Cloudy image](figs/image_3.png)
@@ -37,11 +46,15 @@ We could let two copies of $D_2$ act on the left and right views independently. 
 ![Group action on stereo image](./docs/symmetry_group.png)
 **Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
-## Scope of this project 
+In practice, both views are combined by stacking them horizontally, giving us a single image of size 1758x400 (WxH). The $D_2$ group actions are simply implemented using `torch.flip()` and also supports mini-batches.
 
-In this project, we will compare the performance of the following three models:
-- A standard off-the-shelf convolutional neural network (**CNN**), 
-- a convolutional neural network with smoothing (**SmoothCNN**) and 
-- a group equivariant convolutional neural network (**GCNN**).
-
-The learning objective for all models is to predict weather condition (cloudy or sunny) from a stereo image as input. In other words, we are solving a binary regression problem. We report cross entropy loss (also known as log loss) and classification accuracies on the training, validation and test dataset.
+|Group actions visualized|
+|---|
+|![Original image](figs/original.png)|
+|Original: $e\cdot x$|
+|![Rotated](figs/rotated.png)|
+|Rotated CCW by $\pi$ radians: $r\cdot x$|
+|![Mirrored horizontally](figs/mirrored_horizontal.png)|
+|Mirrored around the horizontal axis: $m_h\cdot x$|
+|![Mirrored vertically](figs/mirrored_vertical.png)|
+|Mirrored around the vertical axis: $m_v\cdot x$|

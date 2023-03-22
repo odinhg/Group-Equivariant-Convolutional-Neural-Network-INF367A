@@ -1,58 +1,29 @@
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms.functional import to_tensor, normalize
 from os.path import isfile
 from PIL import Image
 
+def seed_random_generators(seed: int = 0) -> None:
+    np.random.seed(seed)
+    torch.random.manual_seed(seed)
+
 def merge_views(x: np.ndarray) -> np.ndarray:
     """
-        Take a RGB stereo image of shape (2, H, W, 3) as input and returns a merged version of shape (W, H, 6) by stacking channels in the last dimension.
+        Take a RGB stereo image of shape (2, H, W, 3) as input and returns a merged version of shape (H, 2*W, 3).
     """
-
-    if (x.shape[0] != 2) or (x.shape[3] != 3):
-        raise ValueError(f"Unexpected dimensions. Expected first and last dimensions of size 2 and 3. Got {x.shape[0]} and {x.shape[3]}.")
-
-    y = np.swapaxes(x, 0, 2)
-    y = y.reshape(y.shape[0], y.shape[1], 6)
+    y = np.hstack([x[0], x[1]]) 
     return y
 
 def split_views(y: np.ndarray) -> np.ndarray:
     """
-        Take a merged stereo image of shape (W, H, 6) as input and returns a expanded version of shape (2, H, W, 3). This is the inverse of merge_views().
+        Take a merged stereo image of shape (H, 2*W, 3) as input and returns a expanded version of shape (2, H, W, 3).
     """
-    
-    if y.shape[2] != 6:
-        raise ValueError(f"Unexpected dimensions. Expected last dimension of size 6. Got {y.shape[2]}.")
 
-    x = y.reshape(y.shape[0], y.shape[1], 2, 3)
-    x = np.swapaxes(x, 0, 2)
+    c = y.shape[1] // 2
+    x = np.array([y[:, 0:c, :], y[:, c:, :]])
     return x
-
-def d2_mh(y: np.ndarray) -> np.ndarray:
-    """
-        Takes merged stereo image of shape (W, H, 6). Returns the image flipped around the horizontal axis.
-    """
-
-    y = np.flip(y, 1)
-    return y
-
-def d2_mv(y: np.ndarray) -> np.ndarray:
-    """
-        Takes a merged stereo image of shape (W, H, 6). Returns the image flipped around the vertical axis.
-    """
-    y = np.flip(y, 0)
-    y = np.roll(y, 3, axis=2)
-    return y
-
-def d2_r(y: np.ndarray) -> np.ndarray:
-    """
-        Takes a merged stereo image of shape (W, H, 6). Returns a rotated version of the image.
-    """
-    y = np.flip(y, 0)
-    y = np.flip(y, 1)
-    y = np.roll(y, 3, axis=2)
-    return y
 
 def numpy_image_to_tensor(x: np.ndarray) -> torch.FloatTensor:
     """
@@ -71,8 +42,7 @@ def visualize_tensor(x: torch.FloatTensor, filename: str = None) -> None:
         Take tensor image and display left and right view side-by-side. If filename is provided, save image instead of displaying it.
     """
     y = tensor_to_numpy_image(x)
-    y = split_views(y)
-    image = Image.fromarray(np.hstack([y[0], y[1]]))
+    image = Image.fromarray(y)
     if filename:
         image.save(filename)
     else:
@@ -125,13 +95,45 @@ class ImageDataset(Dataset):
         self.std = np.std(self.images, axis=0)
         return self.std
 
+def create_dataloaders(batch_size: int, test: float, val: float, random_seed: int = 0) -> tuple[DataLoader, DataLoader, DataLoader]:
+    """
+        Create data loaders for training, validation and test datasets.
+    """
+    dataset = ImageDataset()
+    generator = torch.Generator().manual_seed(random_seed)
 
-"""
+    val_size = int(val * len(dataset))
+    test_size = int(test * len(dataset))
+    train_size = len(dataset) - val_size - test_size
 
-TODO:
-    - Create dataloader function to return train, val and test data loaders.
-        - Should take val size, test size, batch size as arguments.
-    - Change symmetries to work with tensors instead of numpy arrays.
-        - NB! Should work with mini-batches of shape (B, W, H, 6).
-    - Create some example images showing the different symmetries and add them to the report.
-"""
+    train_ds, val_ds, test_ds = random_split(dataset, [train_size, val_size, test_size], generator=generator)
+
+    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True)
+    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
+
+    return (train_dl, val_dl, test_dl)
+
+def d2_mh(x: torch.FloatTensor) -> torch.Tensor:
+    """
+        Mirror image tensor around horizontal axis. Supports mini-batches.
+    """
+    if len(x.shape) > 3:
+        return torch.flip(x, [1])
+    return torch.flip(x, [0])
+
+def d2_mv(x: torch.FloatTensor) -> torch.Tensor:
+    """
+        Mirror image tensor around vertical axis. Supports mini-batches.
+    """
+    if len(x.shape) > 3:
+        return torch.flip(x, [2])
+    return torch.flip(x, [1])
+
+def d2_r(x: torch.FloatTensor) -> torch.Tensor:
+    """
+        Rotate image tensor 180 degrees CCW around center. Supports mini-batches.
+    """
+    if len(x.shape) > 3:
+        return torch.flip(x, [1, 2])
+    return torch.flip(x, [0, 1])
