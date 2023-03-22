@@ -22,4 +22,6 @@ font = ImageFont.truetype("./data/font.ttf", 32)
 for i in range(5):
     im = Image.fromarray(np.hstack([X[i, 0], X[i, 1]]))
     ImageDraw.Draw(im).text((10, 10), y[i], font=font, fill=(255, 255, 0))
-    im.save(f"./figs/image_{i}.png")
+    filename = f"./figs/image_{i}.png"
+    im.save(filename)
+    print(f"Example image saved to {filename}.")

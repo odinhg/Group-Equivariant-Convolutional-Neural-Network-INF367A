@@ -1,13 +1,18 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
-from torchvision.transforms.functional import to_tensor, normalize
 from os.path import isfile
 from PIL import Image
+import random
 
 def seed_random_generators(seed: int = 0) -> None:
+    """
+        Seed random generators with given seed. 
+    """
     np.random.seed(seed)
-    torch.random.manual_seed(seed)
+    torch.manual_seed(seed)
+    torch.cuda.manual_seed(seed)
+    random.seed(seed)
 
 def merge_views(x: np.ndarray) -> np.ndarray:
     """
@@ -20,7 +25,6 @@ def split_views(y: np.ndarray) -> np.ndarray:
     """
         Take a merged stereo image of shape (H, 2*W, 3) as input and returns a expanded version of shape (2, H, W, 3).
     """
-
     c = y.shape[1] // 2
     x = np.array([y[:, 0:c, :], y[:, c:, :]])
     return x
