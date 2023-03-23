@@ -91,3 +91,22 @@ $$
 Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(p)=x(g\cdot p)$. 
 
 **Note:** The map $D_2\to\operatorname{Aut} \mathcal{X}(\Omega)$ defined by $g\mapsto \psi(g, -)$ is nothing but the (left) regular representation of $D_2$ on the vector space $\mathcal{X}(\Omega)$.
+
+## Model descriptions
+
+### CNN
+
+The CNN model is a standard CNN network.
+
+<TODO>
+
+### SmoothCNN
+
+The SmoothCNN model is a slight modification of the CNN model. The only difference, is that for an image $x$ we pass all the transformed versions $x$, $r\cdot x$, $m_v\cdot x$ and $m_h\cdot x$ through the network and average the predicted probabilities from the logistic function.
+
+![SmoothCNN model](docs/smoothed_cnn_diagram.png)
+**Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model.
+
+### GCNN
+
+<TODO>
