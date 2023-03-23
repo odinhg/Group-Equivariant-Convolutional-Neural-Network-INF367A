@@ -105,7 +105,7 @@ The CNN model is a standard CNN network.
 The SmoothCNN model is a slight modification of the CNN model. The only difference, is that for an image $x$ we pass all the transformed versions $x$, $r\cdot x$, $m_v\cdot x$ and $m_h\cdot x$ through the network and average the predicted probabilities from the logistic function.
 
 ![SmoothCNN model](docs/smoothed_cnn_diagram.png)
-**Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model.
+**Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model. (The "photo" icon is from www.flaticon.com by the user Freepik.)
 
 ### GCNN
 
