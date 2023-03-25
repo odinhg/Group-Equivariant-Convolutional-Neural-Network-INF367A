@@ -35,10 +35,7 @@ class CNNModel(nn.Module):
         """
         super().__init__()
         self.convolutions = nn.Sequential(
-                                CNNBlock(3, 128, 3, 1, 5),   # (, 20, 80)
-                                CNNBlock(128, 128, 3, 1, 1),
-                                
-                                CNNBlock(128, 64, 3, 1, 1),  # (, 20, 80)
+                                CNNBlock(3, 64, 3, 1, 5),   # (, 20, 80)
                                 CNNBlock(64, 64, 3, 1, 1),
 
                                 CNNBlock(64, 32, 3, 1, 2),  # (, 10, 40)
@@ -52,10 +49,10 @@ class CNNModel(nn.Module):
                             ) # Features out: 4 * 5 * 20 = 400
 
         self.fc = nn.Sequential(
-                        nn.Linear(400, 100),
-                        nn.BatchNorm1d(100),
+                        nn.Linear(400, 32),
+                        nn.BatchNorm1d(32),
                         nn.ReLU(),
-                        nn.Linear(100, 1),
+                        nn.Linear(32, 1),
                         nn.Sigmoid()
                     )
 
