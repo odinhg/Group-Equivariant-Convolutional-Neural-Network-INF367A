@@ -29,7 +29,7 @@ class ImageDataset(Dataset):
         # Create lists containing label strings. In our case, ["cloudy", "sunny"] and [0, 1].
         self.label_list, self.labels = np.unique(self.labels, return_inverse=True)
 
-        self.resize_transform = Resize(size=image_size)
+        self.resize_transform = Resize(size=image_size, antialias=False)
 
         if len(self.images) != len(self.labels):
             raise ValueError(f"Error: Number of images and labels not equal.")
@@ -57,6 +57,14 @@ class ImageDataset(Dataset):
         self.std = np.std(self.images, axis=0)
         return self.std
 
+def seed_worker(worker_id):
+    """
+        From PyTorch docs. Ensures deterministic dataloader.
+    """
+    worker_seed = torch.initial_seed() % 2**32
+    numpy.random.seed(worker_seed)
+    random.seed(worker_seed)
+
 def create_dataloaders(batch_size: int, test: float, val: float, random_seed: int = 0) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
         Create data loaders for training, validation and test datasets.
@@ -70,9 +78,9 @@ def create_dataloaders(batch_size: int, test: float, val: float, random_seed: in
 
     train_ds, val_ds, test_ds = random_split(dataset, [train_size, val_size, test_size], generator=generator)
 
-    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True)
-    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False)
+    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker)
+    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False, worker_init_fn=seed_worker)
 
     return (train_dl, val_dl, test_dl)
 

@@ -1,5 +1,5 @@
 class EarlyStopper():
-    def __init__(self, limit = 10, delta= 0.05):
+    def __init__(self, limit = 10, delta= 0.01):
         self.limit = limit
         self.delta = delta 
         self.min_acc = 0 

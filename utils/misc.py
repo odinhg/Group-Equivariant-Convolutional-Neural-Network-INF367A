@@ -3,7 +3,7 @@ import torch
 from PIL import Image
 import random
 
-def seed_random_generators(seed: int = 0) -> None:
+def seed_random_generators(seed: int = 0, deterministic: bool = True) -> None:
     """
         Seed random generators with given seed. 
     """
@@ -11,6 +11,10 @@ def seed_random_generators(seed: int = 0) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     random.seed(seed)
+
+    if deterministic:
+        torch.backends.cudnn.benchmark = False
+        torch.backends.cudnn.deterministic = True
 
 def merge_views(x: np.ndarray) -> np.ndarray:
     """

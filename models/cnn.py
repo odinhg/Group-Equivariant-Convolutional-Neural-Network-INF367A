@@ -35,24 +35,21 @@ class CNNModel(nn.Module):
         """
         super().__init__()
         self.convolutions = nn.Sequential(
-                                CNNBlock(3, 64, 3, 1, 5),   # (, 20, 80)
-                                CNNBlock(64, 64, 3, 1, 1),
-
-                                CNNBlock(64, 32, 3, 1, 2),  # (, 10, 40)
+                                CNNBlock(3, 32, 3, 1, 5),   # (, 20, 80)
                                 CNNBlock(32, 32, 3, 1, 1),
-                                
-                                CNNBlock(32, 16, 3, 1, 2),   # (, 5, 20)
-                                CNNBlock(16, 16, 3, 1, 1),
 
-                                CNNBlock(16, 4, 3, 1, 1),   # (, 5, 20)
+                                CNNBlock(32, 16, 3, 1, 2),  # (, 10, 40)
+                                CNNBlock(16, 16, 3, 1, 1),
+                                
+                                CNNBlock(16, 8, 3, 1, 2),   # (, 5, 20)
+                                CNNBlock(8, 8, 3, 1, 1),
+
+                                CNNBlock(8, 4, 3, 1, 1),   # (, 5, 20)
                                 CNNBlock(4, 4, 3, 1, 1),
                             ) # Features out: 4 * 5 * 20 = 400
 
         self.fc = nn.Sequential(
-                        nn.Linear(400, 32),
-                        nn.BatchNorm1d(32),
-                        nn.ReLU(),
-                        nn.Linear(32, 1),
+                        nn.Linear(400, 1),
                         nn.Sigmoid()
                     )
 

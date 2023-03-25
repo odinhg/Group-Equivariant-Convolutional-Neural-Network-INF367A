@@ -10,6 +10,8 @@ train_dl, val_dl, test_dl = create_dataloaders(batch_size=config_cnn["batch_size
 model = CNNModel()
 #model = SmoothCNNModel()
 
+summary(model)
+
 loss_function = nn.BCELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=config_cnn["lr"]) 
 
