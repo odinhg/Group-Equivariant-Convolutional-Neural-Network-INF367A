@@ -98,11 +98,13 @@ Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(
 
 The CNN model is a standard CNN network.
 
-<TODO>
+**TODO: Explain how and why convolution is translation-equivariant**
+
+**TODO: Insert baseline CNN model specs here.**
 
 ### SmoothCNN
 
-The SmoothCNN model is a slight modification of the CNN model. The only difference, is that for an image $x$ we pass all the transformed versions $x$, $r\cdot x$, $m_v\cdot x$ and $m_h\cdot x$ through the network and average the predicted probabilities from the logistic function.
+We now describe the most naive approach to achieving a non-trivial $G$-invariant network. In general, for a (locally compact) group $G$, we can smooth $f_\xi$ by integrating over $G$ with respect to the Haar measure on $G$. In our case, where $G$ is finite (or more generally, discrete), the Haar measure on $G$ is just the counting measure. Given a finite group $G$ acting on the space of signals, and a network $f_\xi\colon\mathcal{X}(\Omega)\to\mathbb{R}$, define the *smoothed version* of $f_\xi$, denoted by $\bar{f}_\xi$ by letting $\bar{f}_\xi(x)=\frac{1}{|G|}\sum_{\tau\in G}f(gx)$. For any $\sigma\in G$ we easily see that $\bar{f}_\xi(\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau x)=\bar{f}_\xi(x)$ showing that the smoothed network is $G$-invariant.
 
 ![SmoothCNN model](docs/smoothed_cnn_diagram.png)
 **Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model. (The "photo" icon is from www.flaticon.com by the user Freepik.)
