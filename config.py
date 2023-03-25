@@ -25,7 +25,7 @@ device = "cuda:4"                      # Device for PyTorch to use. Can be "cpu"
 config_cnn = {
                 "name" : "CNN", 
                 "batch_size" : 16,
-                "lr" : 0.001,
+                "lr" : 1e-4,
                 "epochs" : 10,
                 "val_per_epoch" : 4,
                 "checkpoint_file" : join(checkpoints_path, "cnn.pth"),
