@@ -60,26 +60,26 @@ def visualize_tensor(x: torch.FloatTensor, filename: str = "") -> None:
     else:
         image.show()
 
-def d2_mh(x: torch.FloatTensor) -> torch.Tensor:
+def d2_mh(x: torch.Tensor) -> torch.Tensor:
     """
         Mirror image tensor around horizontal axis. Supports mini-batches.
     """
-    if len(x.shape) > 3:
-        return torch.flip(x, [1])
-    return torch.flip(x, [0])
+    return torch.flip(x, dims=[-2])
 
-def d2_mv(x: torch.FloatTensor) -> torch.Tensor:
+def d2_mv(x: torch.Tensor) -> torch.Tensor:
     """
         Mirror image tensor around vertical axis. Supports mini-batches.
     """
-    if len(x.shape) > 3:
-        return torch.flip(x, [2])
-    return torch.flip(x, [1])
+    return torch.flip(x, dims=[-1])
 
-def d2_r(x: torch.FloatTensor) -> torch.Tensor:
+def d2_r(x: torch.Tensor) -> torch.Tensor:
     """
         Rotate image tensor 180 degrees CCW around center. Supports mini-batches.
     """
-    if len(x.shape) > 3:
-        return torch.flip(x, [1, 2])
-    return torch.flip(x, [0, 1])
+    return torch.flip(x, dims=[-1, -2])
+
+def d2_e(x: torch.Tensor) -> torch.Tensor:
+    """
+        Identity.
+    """
+    return x
