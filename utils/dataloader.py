@@ -65,11 +65,12 @@ def seed_worker(worker_id):
     numpy.random.seed(worker_seed)
     random.seed(worker_seed)
 
-def create_dataloaders(batch_size: int, test: float, val: float, random_seed: int = 0) -> tuple[DataLoader, DataLoader, DataLoader]:
+def create_dataloaders(batch_size: int, test: float, val: float, image_size: tuple[int, int] = (100, 400), 
+                       random_seed: int = 0) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
         Create data loaders for training, validation and test datasets.
     """
-    dataset = ImageDataset()
+    dataset = ImageDataset(image_size=image_size)
     generator = torch.Generator().manual_seed(random_seed)
 
     val_size = int(val * len(dataset))

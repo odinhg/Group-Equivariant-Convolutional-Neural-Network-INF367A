@@ -8,14 +8,21 @@ import numpy as np
 from utils import create_dataloaders, Trainer, seed_random_generators, visualize_tensor, d2_r, d2_mh, d2_mv, d2_e
 from config import config_cnn, config_smoothcnn, val_fraction, test_fraction
 
+"""
+    Playground for implementing G convolution. Not to be taken seriously.
+"""
+
+
 class Group():
     """
-        Represent a group via a list of functions acting on the signals, and a Cayley table encoding the group structure. Note that the order of the list of functions must match the order in the Cayley table. Furthermore, the identity function must be the first function in the list.
+        Data structure for storing a representation of a group via a list of functions acting on the signals, and a Cayley table encoding the group structure. Note that the order of the list of functions must match the order in the Cayley table. Furthermore, the identity function must be the first function in the list.
     """
     def __init__(self, functions, cayley_table):
-        self._functions = functions
-        self._cayley_table = cayley_table
+        self._functions = np.array(functions)
+        self._cayley_table = np.array(cayley_table, dtype=np.int64)
         self._order = len(functions)
+        # Find and store an ordered list of inverses of the functions
+        self._inverses = self._functions[np.where(self.cayley_table == 0)[1]]
 
     @property
     def functions(self):
@@ -28,6 +35,10 @@ class Group():
     @property
     def order(self):
         return self._order
+
+    @property
+    def inverses(self):
+        return self._inverses
 
 class Z2ConvG(nn.Module):
     """
@@ -48,7 +59,7 @@ class Z2ConvG(nn.Module):
     def forward(self, x):
         if self.padding:
             x = F.pad(x, pad=(self.padding,) * 4, mode="circular")
-        x = torch.stack([F.conv2d(x, weight=g(self.weight), padding=0, stride=self.stride) for g in self.group.functions], dim=1)
+        x = torch.stack([F.conv2d(x, weight=g(self.weight), padding=0, stride=self.stride) for g in self.group.inverses], dim=1)
         return x
 
 def merge_dims(x):
@@ -85,8 +96,8 @@ class GConv(nn.Module):
         if self.padding:
             x = F.pad(x, pad=(self.padding,) * 4, mode="circular")
         x = unmerge_dims(x, self.group.order)
-        # Convolve over all group elements (notice that the channels are "multiplied" with g as well, i.e., we are permuting the group dimension)
-        feature_maps = [F.conv2d(merge_dims(x[:,I,:,:]), g(self.weight), padding=0, stride=self.stride) for I, g in zip(self.group.cayley_table, self.group.functions)]
+        # Convolve over all group elements (the channels are "multiplied" with g as well, i.e., we are permuting the group dimension)
+        feature_maps = [F.conv2d(merge_dims(x[:,I,:,:]), g(self.weight), padding=0, stride=self.stride) for I, g in zip(self.group.cayley_table, self.group.inverses)]
         x = torch.stack(feature_maps, dim=1)
         return x
 
@@ -114,20 +125,35 @@ class GPool(nn.Module):
             case "min":
                 return torch.min(x, dim=1).values
 
+def G_max_pool2d(x, group, kernel_size=2, stride=2):
+    """
+        Wrapper for max pooling layer to support an extra group dimension.
+    """
+    y = merge_dims(x)
+    y = F.max_pool2d(y, kernel_size, stride)
+    y = unmerge_dims(y, group.order)
+    return y
+
+class GNNModel(nn.Module):
+    def __init__(self, group):
+        self.group = group
+        self.lifting_conv = Z2ConvG(group, in_channels=3, out_channels=32, kernel_size=3, padding=1)
+        second_layer = GConv(group, in_channels=1, out_channels=32, kernel_size=3, padding=1)
+        third_layer = GConv(group, in_channels=32, out_channels=3, kernel_size=3, padding=1)
+        pooling_layer = GPool(reduction="mean")
+
 device = "cpu"
-train_dl, val_dl, test_dl = create_dataloaders(batch_size=16, val=val_fraction, test=test_fraction)
+train_dl, val_dl, test_dl = create_dataloaders(batch_size=2, val=val_fraction, test=test_fraction, image_size=(200,800))
 for x in train_dl:
     images, labels = x[0], x[1]
     break
 
 # Functions and Cayley table representing the symmetry group of a rectangle
 functions = [d2_e, d2_r, d2_mh, d2_mv]
-cayley_table = np.array([
-                        [0,1,2,3],
-                        [1,0,3,2],
-                        [2,3,0,1],
-                        [3,2,1,0]
-                        ])
+cayley_table = [[0,1,2,3],
+                [1,0,3,2],
+                [2,3,0,1],
+                [3,2,1,0]]
 group = Group(functions, cayley_table)
 
 first_layer = Z2ConvG(group, in_channels=3, out_channels=1, kernel_size=5, padding=2)
@@ -135,7 +161,7 @@ second_layer = GConv(group, in_channels=1, out_channels=32, kernel_size=3, paddi
 third_layer = GConv(group, in_channels=32, out_channels=3, kernel_size=3, padding=1)
 pooling_layer = GPool(reduction="mean")
 
-def ff(images):
+def ff(images, r=False):
     print(f"input size: {images.shape}")
     out0 = first_layer(images)
     print(f"lifted size: {out0.shape}")
@@ -145,9 +171,10 @@ def ff(images):
     print(f"after second G conv size: {out2.shape}")
     out3 = pooling_layer(out2)
     print(f"Pooled size: {out3.shape}")
-    k = 6
+    k = 1
     return torch.cat([images[k], out3[k]], dim=-2)
+    #return torch.cat([images[k], out3[k]], dim=-2)
 
 normal = ff(images)
-rotated = ff(d2_r(images))
+rotated = ff(d2_r(images), r=True)
 visualize_tensor(torch.cat([normal, rotated], dim=-1))

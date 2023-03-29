@@ -31,12 +31,12 @@ def split_views(y: np.ndarray) -> np.ndarray:
     x = np.array([y[:, 0:c, :], y[:, c:, :]])
     return x
 
-def numpy_image_to_tensor(x: np.ndarray) -> torch.FloatTensor:
+def numpy_image_to_tensor(x: np.ndarray) -> torch.Tensor:
     """
         Convert numpy image with values 0 - 255 to torch tensor with values 0 - 1.
         Output tensor of shape (3, H, W).
     """
-    y = torch.from_numpy(x / 255).type(torch.FloatTensor)
+    y = torch.from_numpy(x / 255).type(torch.Tensor)
     y = torch.permute(y, (2, 0, 1))
     return y
 
@@ -59,27 +59,3 @@ def visualize_tensor(x: torch.FloatTensor, filename: str = "") -> None:
         image.save(filename)
     else:
         image.show()
-
-def d2_mh(x: torch.Tensor) -> torch.Tensor:
-    """
-        Mirror image tensor around horizontal axis. Supports mini-batches.
-    """
-    return torch.flip(x, dims=[-2])
-
-def d2_mv(x: torch.Tensor) -> torch.Tensor:
-    """
-        Mirror image tensor around vertical axis. Supports mini-batches.
-    """
-    return torch.flip(x, dims=[-1])
-
-def d2_r(x: torch.Tensor) -> torch.Tensor:
-    """
-        Rotate image tensor 180 degrees CCW around center. Supports mini-batches.
-    """
-    return torch.flip(x, dims=[-1, -2])
-
-def d2_e(x: torch.Tensor) -> torch.Tensor:
-    """
-        Identity.
-    """
-    return x
