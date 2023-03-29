@@ -5,19 +5,19 @@ from torchinfo import summary
 import numpy as np
 
 from utils import create_dataloaders, Trainer, seed_random_generators, visualize_tensor, Group, d2_r, d2_mh, d2_mv, d2_e
-from config import config_cnn, config_smoothcnn, val_fraction, test_fraction
+from config import config_cnn, config_smoothcnn, val_fraction, test_fraction, device
 from models import GNNModel
 
 from os.path import join
 figs_path = "figs"
 checkpoints_path = "checkpoints"
 
-device = "cpu"
+#device = "cpu"
 
 config = {
                 "name" : "G-CNN", 
-                "batch_size" : 8,
-                "lr" : 5e-4,
+                "batch_size" : 16,
+                "lr" : 5e-5,
                 "epochs" : 25,
                 "val_per_epoch" : 4,
                 "checkpoint_file" : join(checkpoints_path, "gcnn.pth"),
@@ -34,7 +34,7 @@ cayley_table = [[0,1,2,3],
 group = Group(functions, cayley_table)
 model = GNNModel(group)
 
-train_dl, val_dl, test_dl = create_dataloaders(batch_size=8, val=val_fraction, test=test_fraction)
+train_dl, val_dl, test_dl = create_dataloaders(batch_size=config["batch_size"], val=val_fraction, test=test_fraction)
 
 summary(model)
 

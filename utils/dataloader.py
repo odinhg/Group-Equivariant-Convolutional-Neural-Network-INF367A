@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import random
 from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import Resize
 from os.path import isfile
@@ -62,11 +63,11 @@ def seed_worker(worker_id):
         From PyTorch docs. Ensures deterministic dataloader.
     """
     worker_seed = torch.initial_seed() % 2**32
-    numpy.random.seed(worker_seed)
+    np.random.seed(worker_seed)
     random.seed(worker_seed)
 
 def create_dataloaders(batch_size: int, test: float, val: float, image_size: tuple[int, int] = (100, 400), 
-                       random_seed: int = 0) -> tuple[DataLoader, DataLoader, DataLoader]:
+                        random_seed: int = 0, num_workers: int = 8) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
         Create data loaders for training, validation and test datasets.
     """
@@ -79,9 +80,9 @@ def create_dataloaders(batch_size: int, test: float, val: float, image_size: tup
 
     train_ds, val_ds, test_ds = random_split(dataset, [train_size, val_size, test_size], generator=generator)
 
-    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker)
-    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker)
-    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False, worker_init_fn=seed_worker)
+    train_dl = DataLoader(train_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker, num_workers=num_workers)
+    val_dl = DataLoader(val_ds, batch_size=batch_size, shuffle=True, worker_init_fn=seed_worker, num_workers=num_workers)
+    test_dl = DataLoader(test_ds, batch_size=batch_size, shuffle=False, worker_init_fn=seed_worker, num_workers=num_workers)
 
     return (train_dl, val_dl, test_dl)
 

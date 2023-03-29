@@ -49,7 +49,7 @@ class GConv(nn.Module):
         self.padding = padding
         self.stride = stride
 
-        self.weight = nn.Parameter(torch.zeros(size=(out_channels, self.group.order * in_channels, kernel_size, kernel_size)), requires_grad=True)
+        self.weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
         torch.nn.init.xavier_normal_(self.weight)
 
     def forward(self, x):
@@ -59,7 +59,7 @@ class GConv(nn.Module):
             x = F.pad(x, pad=(self.padding,) * 4, mode="circular")
         x = unmerge_dims(x, self.group.order)
         # Convolve over all group elements (the channels are "multiplied" with g as well, i.e., we are permuting the group dimension)
-        feature_maps = [F.conv2d(merge_dims(x[:,I,:,:]), g(self.weight), padding=0, stride=self.stride) for I, g in zip(self.group.cayley_table, self.group.inverses)]
+        feature_maps = [F.conv2d(merge_dims(x[:,I,:,:]), g(self.weight), padding=0, stride=self.stride, groups=self.group.order) for I, g in zip(self.group.cayley_table, self.group.inverses)]
         x = torch.stack(feature_maps, dim=1)
         return x
 
@@ -119,15 +119,28 @@ class GNNModel(nn.Module):
     def __init__(self, group):
         super().__init__()
         self.group = group
-        self.lifting_conv = Z2ConvG(group, in_channels=3, out_channels=32, kernel_size=5, padding=2)
+        self.lifting_conv = nn.Sequential(
+                                Z2ConvG(group, in_channels=3, out_channels=32, kernel_size=5, padding=2),
+                                GBatchNorm2d(group, 32),
+                                nn.ReLU(),
+                                GMaxPool2d(group, 5, 5),
+                                )
+
         self.g_conv_layers = nn.Sequential(
+                                GConv(group, in_channels=32, out_channels=32, kernel_size=3, padding=1),
+                                GBatchNorm2d(group, 32),
+                                nn.ReLU(),
+
+                                GConv(group, in_channels=32, out_channels=16, kernel_size=3, padding=1),
+                                GBatchNorm2d(group, 16),
+                                nn.ReLU(),
                                 
-                                GConv(group, in_channels=32, out_channels=16, kernel_size=5, padding=2),
+                                GMaxPool2d(group, 2, 2),
+                                
+                                GConv(group, in_channels=16, out_channels=16, kernel_size=3, padding=1),
                                 GBatchNorm2d(group, 16),
                                 nn.ReLU(),
 
-                                GMaxPool2d(group, 5, 5),
-                                
                                 GConv(group, in_channels=16, out_channels=8, kernel_size=3, padding=1),
                                 GBatchNorm2d(group, 8),
                                 nn.ReLU(),
@@ -137,10 +150,12 @@ class GNNModel(nn.Module):
                                 GConv(group, in_channels=8, out_channels=8, kernel_size=3, padding=1),
                                 GBatchNorm2d(group, 8),
                                 nn.ReLU(),
-                                
-                                GMaxPool2d(group, 2, 2),
-                                
+
                                 GConv(group, in_channels=8, out_channels=4, kernel_size=3, padding=1),
+                                GBatchNorm2d(group, 4),
+                                nn.ReLU(),
+
+                                GConv(group, in_channels=4, out_channels=4, kernel_size=3, padding=1),
                                 GBatchNorm2d(group, 4),
                                 nn.ReLU(),
                                 

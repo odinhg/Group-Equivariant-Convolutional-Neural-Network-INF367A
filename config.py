@@ -14,8 +14,8 @@ checkpoints_path = "checkpoints"
 images_file = join(data_path, "X.npy")
 labels_file = join(data_path, "y.npy")
 
-val_fraction = 0.20                 # Fraction of data to use for validation data
-test_fraction = 0.40                # Fraction of data to use for test data
+val_fraction = 0.30                 # Fraction of data to use for validation data
+test_fraction = 0.30                # Fraction of data to use for test data
 
 # Training 
 num_workers = 8                     # Number of workers to use with dataloader.
