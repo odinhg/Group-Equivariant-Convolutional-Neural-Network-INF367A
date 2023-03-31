@@ -5,8 +5,6 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import Resize
 from os.path import isfile
 
-from .misc import merge_views, numpy_image_to_tensor
-
 class ImageDataset(Dataset):
     """ 
         Dataset class for stereo images. 
@@ -35,28 +33,29 @@ class ImageDataset(Dataset):
         if len(self.images) != len(self.labels):
             raise ValueError(f"Error: Number of images and labels not equal.")
 
+    @staticmethod
+    def numpy_image_to_tensor(x):
+        """
+            Convert numpy image of shape (2, H, W, 3) with values 0 - 255 to torch tensor with values 0 - 1.
+            Output tensor of shape (3, 2, H, W).
+        """
+        y = torch.from_numpy(x / 255).type(torch.Tensor)
+        y = torch.permute(y, (3, 0, 1, 2))
+        return y
+
     def __len__(self) -> int:
         return len(self.images)
 
-    def __getitem__(self, idx: int) -> tuple[torch.FloatTensor, torch.float32]:
+    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.float32]:
         image = self.images[idx]
         label = self.labels[idx]
-        image = merge_views(image)
-        image = numpy_image_to_tensor(image) 
+        image = self.numpy_image_to_tensor(image) 
         image = self.resize_transform(image)
         label = torch.tensor(label, dtype=torch.float32)
         return (image, label)
 
     def label_str(self, label: int) -> str:
         return self.label_list[label]
-
-    def mean(self) -> np.ndarray:
-        self.mean = np.mean(self.images, axis=0)
-        return self.mean 
-
-    def std(self) -> np.ndarray:
-        self.std = np.std(self.images, axis=0)
-        return self.std
 
 def seed_worker(worker_id):
     """
