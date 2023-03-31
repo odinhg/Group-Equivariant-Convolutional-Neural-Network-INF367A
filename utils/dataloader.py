@@ -5,12 +5,14 @@ from torch.utils.data import Dataset, DataLoader, random_split
 from torchvision.transforms import Resize
 from os.path import isfile
 
+from .misc import numpy_image_to_tensor
+
 class ImageDataset(Dataset):
     """ 
         Dataset class for stereo images. 
     """
     def __init__(self, images_file: str = "data/X.npy", labels_file: str = "data/y.npy", 
-                 image_size: tuple[int, int] = (100, 400)) -> None:
+                 image_size: tuple[int, int] = (200, 400)) -> None:
         
         if not isfile(images_file):
             raise ValueError(f"Error: Images file {images_file} does not exist.")
@@ -33,23 +35,13 @@ class ImageDataset(Dataset):
         if len(self.images) != len(self.labels):
             raise ValueError(f"Error: Number of images and labels not equal.")
 
-    @staticmethod
-    def numpy_image_to_tensor(x):
-        """
-            Convert numpy image of shape (2, H, W, 3) with values 0 - 255 to torch tensor with values 0 - 1.
-            Output tensor of shape (3, 2, H, W).
-        """
-        y = torch.from_numpy(x / 255).type(torch.Tensor)
-        y = torch.permute(y, (3, 0, 1, 2))
-        return y
-
     def __len__(self) -> int:
         return len(self.images)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.float32]:
         image = self.images[idx]
         label = self.labels[idx]
-        image = self.numpy_image_to_tensor(image) 
+        image = numpy_image_to_tensor(image) 
         image = self.resize_transform(image)
         label = torch.tensor(label, dtype=torch.float32)
         return (image, label)
@@ -65,7 +57,7 @@ def seed_worker(worker_id):
     np.random.seed(worker_seed)
     random.seed(worker_seed)
 
-def create_dataloaders(batch_size: int, test: float, val: float, image_size: tuple[int, int] = (100, 400), 
+def create_dataloaders(batch_size: int, test: float, val: float, image_size: tuple[int, int] = (200, 400), 
                         random_seed: int = 0, num_workers: int = 8) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
         Create data loaders for training, validation and test datasets.
