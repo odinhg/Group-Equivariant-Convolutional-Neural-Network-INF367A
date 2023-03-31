@@ -7,10 +7,11 @@ from utils import create_dataloaders, Trainer, seed_random_generators
 from config import config_cnn, config_smoothcnn, device, val_fraction, test_fraction
 
 config = config_smoothcnn 
+device = "cpu"
 
 train_dl, val_dl, test_dl = create_dataloaders(batch_size=config["batch_size"], val=val_fraction, test=test_fraction)
-#model = CNNModel()
-model = SmoothCNNModel()
+model = CNNModel()
+#model = SmoothCNNModel()
 
 summary(model)
 

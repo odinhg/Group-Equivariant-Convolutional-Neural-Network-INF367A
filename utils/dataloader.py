@@ -61,7 +61,7 @@ def seed_worker(worker_id):
     random.seed(worker_seed)
 
 def create_dataloaders(batch_size: int, test: float, val: float, image_size: tuple[int, int] = (200, 400), 
-                        random_seed: int = 0, num_workers: int = 8) -> tuple[DataLoader, DataLoader, DataLoader]:
+                        random_seed: int = 0, num_workers: int = 4) -> tuple[DataLoader, DataLoader, DataLoader]:
     """
         Create data loaders for training, validation and test datasets.
     """
