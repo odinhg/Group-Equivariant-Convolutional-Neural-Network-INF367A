@@ -29,29 +29,31 @@ class Group():
         return self._inverses
 
 """
-    Functions for the symmetric group D2 of a rectangle
+    Functions for the symmetric group D2 acting on a stereo image.
 """
 
 def d2_mh(x: torch.Tensor) -> torch.Tensor:
     """
-        Mirror image tensor around horizontal axis. Supports mini-batches.
+        Mirror image around horizontal axis by flipping in the height-dimension.
     """
-    return torch.flip(x, dims=[-2])
+    y = torch.flip(x, dims=[-2])
+    return y
 
 def d2_mv(x: torch.Tensor) -> torch.Tensor:
     """
-        Mirror image tensor around vertical axis. Supports mini-batches.
+        Mirror image tensor around vertical axis by flipping in the width dimension and swapping views.
     """
-    return torch.flip(x, dims=[-1])
+    y = torch.flip(x, dims=[-1, -3])
+    return y
 
 def d2_r(x: torch.Tensor) -> torch.Tensor:
     """
-        Rotate image tensor 180 degrees CCW around center. Supports mini-batches.
+        Rotate image tensor 180 degrees CCW. Rotate both views by flipping in height and width dimensions. Then swap views to get the rotation of a stereo image.
     """
-    return torch.flip(x, dims=[-1, -2])
+    return torch.flip(x, dims=[-1, -2, -3])
 
 def d2_e(x: torch.Tensor) -> torch.Tensor:
     """
-        Identity.
+        Every group element deserves its own function! Just because you're an element of the trivial group doesn't mean you're not important. 
     """
     return x

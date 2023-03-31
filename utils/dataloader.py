@@ -39,6 +39,9 @@ class ImageDataset(Dataset):
         return len(self.images)
 
     def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.float32]:
+        """
+            Returns a stereo image of shape (3, 2, H, W).
+        """
         image = self.images[idx]
         label = self.labels[idx]
         image = numpy_image_to_tensor(image) 
