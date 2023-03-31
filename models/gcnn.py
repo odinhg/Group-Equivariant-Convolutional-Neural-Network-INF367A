@@ -2,6 +2,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+"""
+
+    This code is not in use anymore. It is the first set of G-convolution layers I wrote for normal images and is now replace by layers made to work with stereo images. Could be useful for later projects.
+
+"""
+
+
 class Z2ConvG(nn.Module):
     """
         Lifting convolution. Takes an image (signal on Omega) and returns a signal on the (affine) group G = Aff(H).
