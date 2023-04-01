@@ -12,17 +12,15 @@ from os.path import join
 figs_path = "figs"
 checkpoints_path = "checkpoints"
 
-device = "cpu"
-
 config = {
                 "name" : "G-CNN", 
-                "batch_size" : 4,
+                "batch_size" : 16,
                 "lr" : 5e-5,
                 "epochs" : 25,
                 "val_per_epoch" : 4,
                 "checkpoint_file" : join(checkpoints_path, "gcnn.pth"),
                 "loss_plot_file" : join(figs_path, "gcnn_loss_plot.png"),
-                "earlystop_limit" : 10
+                "earlystop_limit" : 20
 
             }
 # Functions and Cayley table representing the symmetry group of a rectangle
@@ -35,6 +33,18 @@ group = Group(functions, cayley_table)
 model = GCNNModel(group)
 
 train_dl, val_dl, test_dl = create_dataloaders(batch_size=config["batch_size"], val=val_fraction, test=test_fraction)
+
+model.eval()
+for data in train_dl:
+    images, labels = data[0], data[1]
+    print(model(images))
+    print(model(d2_r(images)))
+    print(model(d2_mh(images)))
+    print(model(d2_mv(images)))
+    break
+
+exit()
+
 
 summary(model)
 

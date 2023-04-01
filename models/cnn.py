@@ -8,19 +8,19 @@ class CNNModel(nn.Module):
         self.convolutions = nn.Sequential(
                                 # (B, 3, 2, 200, 400)
                                 StereoConvBlock(3, 32, 3, 1),
+                                StereoConvBlock(32, 32, 3, 1),
                                 StereoMaxPool2d(5, 5),
                                 # (B, 32, 2, 40, 80)
-                                StereoConvBlock(32, 32, 3, 1),
                                 StereoConvBlock(32, 16, 3, 1),
                                 StereoMaxPool2d(2, 2),
                                 # (B, 16, 2, 20, 40)
-                                StereoConvBlock(16, 16, 3, 1),
                                 StereoConvBlock(16, 8, 3, 1),
+                                StereoConvBlock(8, 8, 3, 1),
                                 StereoMaxPool2d(2, 2),
                                 # (B, 8, 2, 10, 20)
-                                StereoConvBlock(8, 8, 3, 1),
                                 StereoConvBlock(8, 4, 3, 1),
                                 StereoMaxPool2d(2, 2),
+                                StereoConvBlock(4, 4, 3, 1),
                                 # (B, 4, 2, 5, 10)
                                 # 4 * 2 * 5 * 10 = 400 features out
                             )

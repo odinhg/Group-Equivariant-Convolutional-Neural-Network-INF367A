@@ -6,7 +6,7 @@ from .stereoconv import StereoConv2d, StereoMaxPool2d, StereoBatchNorm2d
 from utils import Group 
 
 """
-    Implementation of group equivariant convolutional layers.
+    Implementation of group equivariant convolutional layers for stereo images and signals.
     Disclaimer: I did my best to follow the paper by Cohen and Welling in detail, but there might be some mistakes in my implementation.
 """
 
@@ -139,10 +139,10 @@ class StereoGBatchNorm2d(nn.Module):
         self.n = group.order
         self.bn_left = nn.GroupNorm(self.n, self.n * num_features, affine=False)
         self.bn_right = nn.GroupNorm(self.n, self.n * num_features, affine=False)
-        self.scale_left = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
-        self.scale_right = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
-        self.bias_left = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
-        self.bias_right = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
+        self.scale_left = nn.Parameter(torch.ones(size=(self.n,)).view(1, -1, 1, 1, 1), requires_grad=True)
+        self.scale_right = nn.Parameter(torch.ones(size=(self.n,)).view(1, -1, 1, 1, 1), requires_grad=True)
+        self.bias_left = nn.Parameter(torch.zeros(size=(self.n,)).view(1, -1, 1, 1, 1), requires_grad=True)
+        self.bias_right = nn.Parameter(torch.zeros(size=(self.n,)).view(1, -1, 1, 1, 1), requires_grad=True)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         x = merge_dims(x)
