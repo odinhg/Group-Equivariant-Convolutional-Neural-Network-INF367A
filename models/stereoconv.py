@@ -48,7 +48,7 @@ class StereoBatchNorm2d(nn.Module):
     """
         Batch normalization for stereo images.
     """
-    def __init__(self, num_features: int, affine:bool=False):
+    def __init__(self, num_features: int, affine:bool=True):
         super().__init__()
         self.bn_left = nn.BatchNorm2d(num_features, affine=affine)
         self.bn_right = nn.BatchNorm2d(num_features, affine=affine)
@@ -76,12 +76,12 @@ class StereoMaxPool2d(nn.Module):
 
 class StereoConvBlock(nn.Module):
     """
-        Simple convolutional block for stereo images: CNN -> BN -> ReLU. 
+        Simple convolutional block for stereo images: Conv -> BN -> ReLU. 
     """
-    def __init__(self, in_channels: int, out_channels: int, kernel_size: int=3, padding: int=1, bias: bool=False):
+    def __init__(self, in_channels: int, out_channels: int, kernel_size: int=3, padding: int=1, bias: bool=True, stride: int=1):
         super().__init__()
         self.layers = nn.Sequential(
-                            StereoConv2d(in_channels, out_channels, kernel_size, padding, bias=bias),
+                            StereoConv2d(in_channels, out_channels, kernel_size, padding, stride, bias=bias),
                             StereoBatchNorm2d(out_channels),
                             nn.ReLU(),
                         )

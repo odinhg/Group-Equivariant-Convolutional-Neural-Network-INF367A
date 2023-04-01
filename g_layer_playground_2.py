@@ -6,13 +6,13 @@ import numpy as np
 
 from utils import create_dataloaders, Trainer, seed_random_generators, visualize_tensor, Group, d2_r, d2_mh, d2_mv, d2_e
 from config import config_cnn, config_smoothcnn, val_fraction, test_fraction, device
-from models import GNNModel
+from models import GCNNModel
 
 from os.path import join
 figs_path = "figs"
 checkpoints_path = "checkpoints"
 
-#device = "cpu"
+device = "cpu"
 
 config = {
                 "name" : "G-CNN", 
@@ -32,7 +32,7 @@ cayley_table = [[0,1,2,3],
                 [2,3,0,1],
                 [3,2,1,0]]
 group = Group(functions, cayley_table)
-model = GNNModel(group)
+model = GCNNModel(group)
 
 train_dl, val_dl, test_dl = create_dataloaders(batch_size=config["batch_size"], val=val_fraction, test=test_fraction)
 
