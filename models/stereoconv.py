@@ -16,10 +16,14 @@ class StereoConv2d(nn.Module):
         self.padding = padding
         self.stride = stride
         self.groups = groups
-        self.left_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
-        self.right_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
-        torch.nn.init.xavier_normal_(self.left_weight)
-        torch.nn.init.xavier_normal_(self.right_weight)
+        self.in_channels = in_channels
+        self.out_channels = out_channels
+        #self.left_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
+        #self.right_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
+        self.weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, 2, kernel_size, kernel_size)), requires_grad=True)
+        #torch.nn.init.xavier_normal_(self.left_weight)
+        #torch.nn.init.xavier_normal_(self.right_weight)
+        torch.nn.init.xavier_normal_(self.weight)
         if bias:
             self.left_bias = nn.Parameter(torch.zeros(size=(out_channels,)), requires_grad=True)
             self.right_bias = nn.Parameter(torch.zeros(size=(out_channels,)), requires_grad=True)
@@ -39,8 +43,8 @@ class StereoConv2d(nn.Module):
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         left, right = self.split_and_pad(x)
-        out_left = F.conv2d(left, self.left_weight, bias=self.left_bias, stride=self.stride, padding=0, groups=self.groups)
-        out_right = F.conv2d(right, self.right_weight, bias=self.right_bias, stride=self.stride, padding=0, groups=self.groups)
+        out_left = F.conv2d(left, self.weight[:,:,0], bias=self.left_bias, stride=self.stride, padding=0, groups=self.groups)
+        out_right = F.conv2d(right, self.weight[:,:,1], bias=self.right_bias, stride=self.stride, padding=0, groups=self.groups)
         out = torch.stack([out_left, out_right], dim=2)
         return out
 

@@ -34,17 +34,20 @@ model = GCNNModel(group)
 
 train_dl, val_dl, test_dl = create_dataloaders(batch_size=config["batch_size"], val=val_fraction, test=test_fraction)
 
+"""
+#TEST G INVARIANCE
 model.eval()
-for data in train_dl:
-    images, labels = data[0], data[1]
-    print(model(images))
-    print(model(d2_r(images)))
-    print(model(d2_mh(images)))
-    print(model(d2_mv(images)))
-    break
+with torch.no_grad():
+    for data in train_dl:
+        images, labels = data[0], data[1]
+        print(model(images))
+        print(model(d2_r(images)))
+        print(model(d2_mh(images)))
+        print(model(d2_mv(images)))
+        break
 
 exit()
-
+"""
 
 summary(model)
 

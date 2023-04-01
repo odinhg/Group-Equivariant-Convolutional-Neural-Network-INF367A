@@ -47,8 +47,9 @@ class StereoZ2ConvG(StereoConv2d):
         left, right = self.split_and_pad(x)
         feature_maps = []
         for j, g in enumerate(self.group.inverses):
-            out_left = F.conv2d(left, g(self.left_weight), stride=self.stride, padding=0) + self.left_bias[j]
-            out_right = F.conv2d(right, g(self.right_weight), stride=self.stride, padding=0) + self.right_bias[j]
+            transformed_weight = g(self.weight)
+            out_left = F.conv2d(left, transformed_weight[:,:,0], stride=self.stride, padding=0) + self.left_bias[j]
+            out_right = F.conv2d(right, transformed_weight[:,:,1], stride=self.stride, padding=0) + self.right_bias[j]
             # Stack left and right views
             out = torch.stack([out_left, out_right], dim=2)
             feature_maps.append(out)
@@ -71,13 +72,14 @@ class StereoGConv(StereoZ2ConvG):
         left = left.view(left.shape[0], self.n, -1, left.shape[2], left.shape[3])
         right = right.view(right.shape[0], self.n, -1, right.shape[2], right.shape[3])
         feature_maps = []
-        for j, (I, g) in enumerate(zip(self.group.cayley_table, self.group.inverses)):
+        for j, (I, g) in enumerate(zip(self.group.inverse_indices, self.group.inverses)):
             # Act on by g in the group dimension
             permuted_left = left[:,I].view(left.shape[0], -1, left.shape[3], left.shape[4])
             permuted_right = right[:,I].view(right.shape[0], -1, right.shape[3], right.shape[4])
             # Perform group convolution. Note that we share weights over the group dimensions.
-            out_left = F.conv2d(permuted_left, g(self.left_weight), stride=self.stride, padding=0, groups=self.n) + self.left_bias[j]
-            out_right = F.conv2d(permuted_right, g(self.right_weight), stride=self.stride, padding=0, groups=self.n) + self.right_bias[j]
+            transformed_weight = g(self.weight)
+            out_left = F.conv2d(permuted_left, transformed_weight[:,:,0], stride=self.stride, padding=0, groups=self.n) + self.left_bias[j]
+            out_right = F.conv2d(permuted_right, transformed_weight[:,:,1], stride=self.stride, padding=0, groups=self.n) + self.right_bias[j]
             # Stack left and right views
             out = torch.stack([out_left, out_right], dim=2)
             feature_maps.append(out)
@@ -123,11 +125,13 @@ class StereoGMaxPool2d(StereoMaxPool2d):
         self.n = group.order
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        x = merge_dims(x)
-        out_left = F.max_pool2d(x[:,:,0], self.kernel_size, stride=self.stride) 
-        out_right = F.max_pool2d(x[:,:,1], self.kernel_size, stride=self.stride)
-        out = torch.stack([out_left, out_right], dim=2)
-        out = unmerge_dims(out, self.n)
+        feature_maps = []
+        for j in range(self.n):
+            out_left = F.max_pool2d(x[:,j,:,0], self.kernel_size, stride=self.stride) 
+            out_right = F.max_pool2d(x[:,j,:,1], self.kernel_size, stride=self.stride)
+            out = torch.stack([out_left, out_right], dim=2)
+            feature_maps.append(out)
+        out = torch.stack(feature_maps, dim=1)
         return out
 
 class StereoGBatchNorm2d(nn.Module):

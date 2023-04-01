@@ -4,7 +4,6 @@ import torch.nn as nn
 from .groupconv import StereoZ2ConvG, StereoGMaxPool2d, StereoGConvBlock, StereoGBatchNorm2d, StereoGAveragePool
 from .stereoconv import StereoConvBlock, StereoMaxPool2d
 
-
 class GCNNModel(nn.Module):
     def __init__(self, group):
         super().__init__()

@@ -11,6 +11,7 @@ class Group():
         self._order = len(functions)
         # Find and store an ordered list of inverses of the functions
         self._inverses = self._functions[np.where(self.cayley_table == 0)[1]]
+        self._inverse_indices = self._cayley_table[np.where(self.cayley_table == 0)[1]]
 
     @property
     def functions(self):
@@ -27,6 +28,10 @@ class Group():
     @property
     def inverses(self):
         return self._inverses
+
+    @property
+    def inverse_indices(self):
+        return self._inverse_indices
 
 """
     Functions for the symmetric group D2 acting on a stereo image.
