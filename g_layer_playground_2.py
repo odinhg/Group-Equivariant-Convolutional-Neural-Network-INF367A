@@ -16,7 +16,7 @@ device = "cpu"
 
 config = {
                 "name" : "G-CNN", 
-                "batch_size" : 16,
+                "batch_size" : 4,
                 "lr" : 5e-5,
                 "epochs" : 25,
                 "val_per_epoch" : 4,

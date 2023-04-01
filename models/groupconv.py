@@ -68,12 +68,13 @@ class StereoGConv(StereoZ2ConvG):
         # Merge group and channel dimensions
         x = merge_dims(x) 
         left, right = self.split_and_pad(x)
-        left, right = unmerge_dims(left, self.n), unmerge_dims(right, self.n)
+        left = left.view(left.shape[0], self.n, -1, left.shape[2], left.shape[3])
+        right = right.view(right.shape[0], self.n, -1, right.shape[2], right.shape[3])
         feature_maps = []
         for j, (I, g) in enumerate(zip(self.group.cayley_table, self.group.inverses)):
             # Act on by g in the group dimension
-            permuted_left = merge_dims(left[:,I])
-            permuted_right = merge_dims(right[:,I])
+            permuted_left = left[:,I].view(left.shape[0], -1, left.shape[3], left.shape[4])
+            permuted_right = right[:,I].view(right.shape[0], -1, right.shape[3], right.shape[4])
             # Perform group convolution. Note that we share weights over the group dimensions.
             out_left = F.conv2d(permuted_left, g(self.left_weight), stride=self.stride, padding=0, groups=self.n) + self.left_bias[j]
             out_right = F.conv2d(permuted_right, g(self.right_weight), stride=self.stride, padding=0, groups=self.n) + self.right_bias[j]
@@ -129,26 +130,27 @@ class StereoGMaxPool2d(StereoMaxPool2d):
         out = unmerge_dims(out, self.n)
         return out
 
-class StereoGBatchNorm2d(StereoBatchNorm2d):
+class StereoGBatchNorm2d(nn.Module):
     """
         Batch normalization for stereo signals on the group. Note that we use one scale and one bias parameter for each group channel as described in the paper by Cohen and Welling.
     """
     def __init__(self, group: Group, num_features: int):
-        super().__init__(num_features, affine=False)
+        super().__init__()
         self.n = group.order
-        self.scale_left = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1, 1)
-        self.scale_right = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1, 1)
-        self.bias_left = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1, 1)
-        self.bias_right = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1, 1)
+        self.bn_left = nn.GroupNorm(self.n, self.n * num_features, affine=False)
+        self.bn_right = nn.GroupNorm(self.n, self.n * num_features, affine=False)
+        self.scale_left = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
+        self.scale_right = nn.Parameter(torch.ones(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
+        self.bias_left = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
+        self.bias_right = nn.Parameter(torch.zeros(size=(self.n,)), requires_grad=True).view(1, -1, 1, 1, 1)
     
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        #(B, n, C, 2, H, W)
         x = merge_dims(x)
-        #(B, C*n, 2, H, W)
-        out_left = self.bn_left(x[:,:,0]) * self.scale_left + self.bias_left
-        out_right = self.bn_left(x[:,:,1]) * self.scale_right + self.bias_right
-        out = torch.stack([out_left, out_right], dim=2)
-        out = unmerge_dims(out, self.n)
+        out_left = self.bn_left(x[:,:,0]).view(x.shape[0], self.n, -1, x.shape[3], x.shape[4])
+        out_left = out_left * self.scale_left + self.bias_left
+        out_right = self.bn_left(x[:,:,1]).view(x.shape[0], self.n, -1, x.shape[3], x.shape[4])
+        out_right = out_right * self.scale_right + self.bias_right
+        out = torch.stack([out_left, out_right], dim=3)
         return out 
 
 class StereoGConvBlock(nn.Module):
