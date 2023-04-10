@@ -11,40 +11,36 @@ class StereoConv2d(nn.Module):
         Convolution for stereo images (tensors) of shape (B, C, 2, H, W). With support for circular padding.
     """
     def __init__(self, in_channels: int, out_channels: int, kernel_size: int=3, padding: int=1, 
-                 stride: int=1, groups: int=1, bias: bool=False):
+                 stride: int=1, bias: bool=True):
         super().__init__()
         self.padding = padding
         self.stride = stride
-        self.groups = groups
         self.in_channels = in_channels
         self.out_channels = out_channels
-        #self.left_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
-        #self.right_weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, kernel_size, kernel_size)), requires_grad=True)
         self.weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, 2, kernel_size, kernel_size)), requires_grad=True)
-        #torch.nn.init.xavier_normal_(self.left_weight)
-        #torch.nn.init.xavier_normal_(self.right_weight)
         torch.nn.init.xavier_normal_(self.weight)
         if bias:
-            self.left_bias = nn.Parameter(torch.zeros(size=(out_channels,)), requires_grad=True)
-            self.right_bias = nn.Parameter(torch.zeros(size=(out_channels,)), requires_grad=True)
+            self.bias = nn.Parameter(torch.zeros(size=(2, out_channels,)), requires_grad=True)
         else:
-            self.left_bias = None
-            self.right_bias = None
-
-    def split_and_pad(self, x: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
+            self.bias = None
+    
+    @staticmethod
+    def split_and_pad(x: torch.Tensor, padding: int=1) -> tuple[torch.Tensor, torch.Tensor]:
         """
-            Split into left and right view and add circular padding if needed.
+            Split into left and right view, add circular padding if needed, and return both views.
+            Input shape: (B, C, 2, H, W)
+            Output shape: ((B, C, H', W'), (B, C, H', W')) where H' = H + 2 * padding and W' = W + 2 * padding.
         """
         left, right = x[:,:,0], x[:,:,1]
-        if self.padding:
-            left = F.pad(left, pad=(self.padding,) * 4, mode="circular")
-            right = F.pad(right, pad=(self.padding,) * 4, mode="circular")
+        if padding:
+            left = F.pad(left, pad=(padding,) * 4, mode="circular")
+            right = F.pad(right, pad=(padding,) * 4, mode="circular")
         return (left, right)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        left, right = self.split_and_pad(x)
-        out_left = F.conv2d(left, self.weight[:,:,0], bias=self.left_bias, stride=self.stride, padding=0, groups=self.groups)
-        out_right = F.conv2d(right, self.weight[:,:,1], bias=self.right_bias, stride=self.stride, padding=0, groups=self.groups)
+        left, right = self.split_and_pad(x, self.padding)
+        out_left = F.conv2d(left, self.weight[:,:,0], bias=self.bias[0], stride=self.stride, padding=0)
+        out_right = F.conv2d(right, self.weight[:,:,1], bias=self.bias[1], stride=self.stride, padding=0)
         out = torch.stack([out_left, out_right], dim=2)
         return out
 

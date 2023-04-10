@@ -2,18 +2,23 @@ import torch
 import torch.nn as nn
 from .stereoconv import StereoConvBlock, StereoMaxPool2d
 
+def init_weights(m):
+    if isinstance(m, nn.Linear):
+        torch.nn.init.xavier_uniform_(m.weight)
+        m.bias.data.fill_(0.01)
+
 class CNNModel(nn.Module):
     def __init__(self):
         super().__init__()
         self.convolutions = nn.Sequential(
                                 # (B, 3, 2, 200, 400)
                                 StereoConvBlock(3, 32, 3, 1),
-                                StereoConvBlock(32, 32, 3, 1),
                                 StereoMaxPool2d(5, 5),
                                 # (B, 32, 2, 40, 80)
                                 StereoConvBlock(32, 16, 3, 1),
                                 StereoMaxPool2d(2, 2),
                                 # (B, 16, 2, 20, 40)
+                                StereoConvBlock(16, 16, 3, 1),
                                 StereoConvBlock(16, 8, 3, 1),
                                 StereoConvBlock(8, 8, 3, 1),
                                 StereoMaxPool2d(2, 2),
@@ -21,14 +26,18 @@ class CNNModel(nn.Module):
                                 StereoConvBlock(8, 4, 3, 1),
                                 StereoMaxPool2d(2, 2),
                                 StereoConvBlock(4, 4, 3, 1),
-                                # (B, 4, 2, 5, 10)
-                                # 4 * 2 * 5 * 10 = 400 features out
+                                StereoConvBlock(4, 2, 3, 1),
+                                # (B, 2, 2, 5, 10)
+                                # 2 * 2 * 5 * 10 = 200 features out
                             )
 
         self.fc = nn.Sequential(
-                        nn.Linear(400, 1),
+                        nn.Linear(200, 40),
+                        nn.Linear(40, 1),
                         nn.Sigmoid()
                     )
+
+        self.fc.apply(init_weights)
 
     def forward(self, x):
         x = self.convolutions(x)

@@ -9,9 +9,15 @@ class Group():
         self._functions = np.array(functions)
         self._cayley_table = np.array(cayley_table, dtype=np.int64)
         self._order = len(functions)
+        # Indices of inverse functions
+        self._inverse_indices = np.where(self.cayley_table == 0)[1]
         # Find and store an ordered list of inverses of the functions
-        self._inverses = self._functions[np.where(self.cayley_table == 0)[1]]
-        self._inverse_indices = self._cayley_table[np.where(self.cayley_table == 0)[1]]
+        self._inverses = self._functions[self._inverse_indices]
+        self._permuted_indices = self.cayley_table[self._inverse_indices]
+
+    @property
+    def permuted_indices(self):
+        return self._permuted_indices
 
     @property
     def functions(self):

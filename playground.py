@@ -15,7 +15,7 @@ model = CNNModel()
 summary(model)
 
 loss_function = nn.BCELoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=config["lr"], weight_decay=1e-5) 
+optimizer = torch.optim.Adam(model.parameters(), lr=config["lr"], weight_decay=1e-2) 
 
 trainer = Trainer(model, train_dl, val_dl, test_dl, config, loss_function, device)
 

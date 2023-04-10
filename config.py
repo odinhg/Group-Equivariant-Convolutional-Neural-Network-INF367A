@@ -14,8 +14,8 @@ checkpoints_path = "checkpoints"
 images_file = join(data_path, "X.npy")
 labels_file = join(data_path, "y.npy")
 
-val_fraction = 0.20                 # Fraction of data to use for validation data
-test_fraction = 0.40                # Fraction of data to use for test data
+val_fraction = 0.30                 # Fraction of data to use for validation data
+test_fraction = 0.30                # Fraction of data to use for test data
 
 # Training 
 num_workers = 8                     # Number of workers to use with dataloader.
@@ -25,8 +25,8 @@ device = "cuda:4"                   # Device for PyTorch to use. Can be "cpu" or
 config_cnn = {
                 "name" : "CNN", 
                 "batch_size" : 16,
-                "lr" : 5e-4,
-                "epochs" : 25,
+                "lr" : 1e-4,
+                "epochs" : 50,
                 "val_per_epoch" : 4,
                 "checkpoint_file" : join(checkpoints_path, "cnn.pth"),
                 "loss_plot_file" : join(figs_path, "cnn_loss_plot.png"),
@@ -37,8 +37,8 @@ config_cnn = {
 config_smoothcnn = {
                 "name" : "SmoothCNN", 
                 "batch_size" : 16,
-                "lr" : 5e-4,
-                "epochs" : 25,
+                "lr" : 1e-4,
+                "epochs" : 50,
                 "val_per_epoch" : 4,
                 "checkpoint_file" : join(checkpoints_path, "smoothcnn.pth"),
                 "loss_plot_file" : join(figs_path, "smoothcnn_loss_plot.png"),

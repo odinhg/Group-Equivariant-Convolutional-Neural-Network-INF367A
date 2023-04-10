@@ -26,40 +26,42 @@ def unmerge_dims(x, n):
     """
     return x.view(x.shape[0], n, -1, 2, x.shape[3], x.shape[4])
 
-class StereoZ2ConvG(StereoConv2d):
+class StereoZ2ConvG(nn.Module):
     """
         The first layer also called the "lifting convolution". 
         Takes a stereo image (signal on Omega) and returns a signal on the (affine) group G = Aff(H).
         Input of shape (B, C, 2, H, W). Output of shape (B, n, C', 2, H', W') where n is order of the group H.
     """
-    def __init__(self, group: Group, in_channels: int, out_channels: int, kernel_size: int=3, 
-            padding: int=1, stride: int=1, bias:bool = True):
-        super().__init__(in_channels, out_channels, kernel_size, padding, stride, bias=False)
+    def __init__(self, group: Group, in_channels: int, out_channels: int, kernel_size: int=3, padding: int=1, stride: int=1):
+        super().__init__()
+        self.padding = padding
+        self.stride = stride
+        self.in_channels = in_channels
+        self.out_channels = out_channels
         self.group = group
         self.n = group.order
-        self.use_bias = bias
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(size=(self.n, 2,)), requires_grad=True)
+        self.weight = nn.Parameter(torch.zeros(size=(out_channels, in_channels, self.n, 2, kernel_size, kernel_size)), requires_grad=True)
+        torch.nn.init.xavier_normal_(self.weight)
+        self.bias = nn.Parameter(torch.zeros(size=(self.n, 2,)), requires_grad=True)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
             Create one feature map for each group element. We let the group act on the weights instead of the actual input tensor.
         """
-        left, right = self.split_and_pad(x, self.padding)
+        left, right = StereoConv2d.split_and_pad(x, self.padding)
         feature_maps = []
-        for i, g in enumerate(self.group.inverses):
+        for j, g in enumerate(self.group.inverses):
             transformed_weight = g(self.weight)
-            out_left = F.conv2d(left, transformed_weight[:,:,0], bias=None, stride=self.stride, padding=0)
-            out_right = F.conv2d(right, transformed_weight[:,:,1], bias=None, stride=self.stride, padding=0)
-            if self.use_bias:
-                out_left = out_left + self.bias[i,0]
-                out_right = out_right + self.bias[i,1]
+            out_left = F.conv2d(left, transformed_weight[:,:,j,0], stride=self.stride, padding=0) + self.bias[j,0]
+            out_right = F.conv2d(right, transformed_weight[:,:,j,1], stride=self.stride, padding=0) + self.bias[j,1]
+            # Stack left and right views
             out = torch.stack([out_left, out_right], dim=2)
             feature_maps.append(out)
+        # Stack group dimension
         out = torch.stack(feature_maps, dim=1)
         return out
 
-class StereoGConv(nn.Module):
+class StereoGConv(StereoZ2ConvG):
     """
         The later layers in a group equivariant CNN, also called "group convolutions". 
         Takes as input a signal on the (affine) group G = Aff(H) and return a signal on the same domain. 
@@ -67,41 +69,32 @@ class StereoGConv(nn.Module):
 
         Note that we permute the group dimension view the G-action. See readme for details.
     """
-    def __init__(self, group: Group, in_channels: int, out_channels: int, kernel_size: int=3, 
-            padding: int=1, stride: int=1, bias:bool = True):
-        super().__init__()
-        self.group = group
-        self.n = group.order
-        self.padding = padding
-        self.stride = stride
-        self.in_channels = in_channels
-        self.out_channels = out_channels
-        self.weight = nn.Parameter(torch.zeros(size=(self.n, out_channels, in_channels, 2, kernel_size, kernel_size)), requires_grad=True)
-        torch.nn.init.xavier_normal_(self.weight)
-        self.use_bias = bias
-        if bias:
-            self.bias = nn.Parameter(torch.zeros(size=(self.n, 2,)), requires_grad=True)
-
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
-            This method would benefit from some cleaning up and optimization. However, it works as expected.
+        (B, n, C, 2, H, W) , Weight: (C', C, n, 2, k, k)
+        TODO: Re implement this later. It does not seem to be G-invariant (or equivariant).Think it through on paper.
+        Also check lifting conv layer.
         """
+
+
+        # Merge group and channel dimensions
+        x = merge_dims(x) 
+        left, right = StereoConv2d.split_and_pad(x, self.padding)
+        left = left.view(left.shape[0], self.n, -1, left.shape[2], left.shape[3])
+        right = right.view(right.shape[0], self.n, -1, right.shape[2], right.shape[3])
         feature_maps = []
-        for i, g in enumerate(self.group.inverses):
-            y = []
-            for j in self.group.permuted_indices[i]:
-                left, right = StereoConv2d.split_and_pad(x[:,i], self.padding)
-                transformed_weight = g(self.weight[j])
-                out_left = F.conv2d(left, transformed_weight[:,:,0], bias=None, stride=self.stride, padding=0)
-                out_right = F.conv2d(right, transformed_weight[:,:,1], bias=None, stride=self.stride, padding=0)
-                out_stacked = torch.stack([out_left, out_right], dim=2)
-                y.append(out_stacked)
-            y = torch.stack(y, dim=0)
-            y = torch.sum(y, dim=0)
-            if self.use_bias:
-                y[:,:,0] = y[:,:,0] + self.bias[i,0]
-                y[:,:,1] = y[:,:,1] + self.bias[i,1]
-            feature_maps.append(y)
+        for j, (I, g) in enumerate(zip(self.group.inverse_indices, self.group.inverses)):
+            # Act on by g in the group dimension
+            permuted_left = left[:,I].view(left.shape[0], -1, left.shape[3], left.shape[4])
+            permuted_right = right[:,I].view(right.shape[0], -1, right.shape[3], right.shape[4])
+            # Perform group convolution. Note that we share weights over the group dimensions.
+            transformed_weight = g(self.weight)
+            out_left = F.conv2d(permuted_left, transformed_weight[:,:,j,0], stride=self.stride, padding=0, groups=self.n) + self.bias[j,0]
+            out_right = F.conv2d(permuted_right, transformed_weight[:,:,j,1], stride=self.stride, padding=0, groups=self.n) + self.bias[j,1]
+            # Stack left and right views
+            out = torch.stack([out_left, out_right], dim=2)
+            feature_maps.append(out)
+        # Stack group dimension
         out = torch.stack(feature_maps, dim=1)
         return out
 
