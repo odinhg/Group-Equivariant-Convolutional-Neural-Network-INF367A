@@ -109,8 +109,38 @@ The CNN model is more or less a standard CNN network. The only difference is tha
 
 It is well-known and not hard to see that the convolutional layers are equivariant under translations. The idea for the SmoothCNN model is to force the CNN model to be invariant under symmetries as well. In the GCNN model, we build $G$-equivariant layers and force invariance later in the network.
 
+The CNN model has 28637 learnable parameters and consists of the following layers:
 
-**TODO: Insert baseline CNN model specs here.**
+```
+Layer (type:depth-idx)                        Param #
+======================================================================
+CNNModel                                      --
+├─Sequential: 1-1                             --
+│    └─StereoConvBlock: 2-1                   --
+│    │    └─Sequential: 3-1                   1,920
+│    └─StereoMaxPool2d: 2-2                   --
+│    └─StereoConvBlock: 2-3                   --
+│    │    └─Sequential: 3-2                   9,312
+│    └─StereoMaxPool2d: 2-4                   --
+│    └─StereoConvBlock: 2-5                   --
+│    │    └─Sequential: 3-3                   4,704
+│    └─StereoConvBlock: 2-6                   --
+│    │    └─Sequential: 3-4                   2,352
+│    └─StereoConvBlock: 2-7                   --
+│    │    └─Sequential: 3-5                   1,200
+│    └─StereoMaxPool2d: 2-8                   --
+│    └─StereoConvBlock: 2-9                   --
+│    │    └─Sequential: 3-6                   600
+│    └─StereoMaxPool2d: 2-10                  --
+│    └─StereoConvBlock: 2-11                  --
+│    │    └─Sequential: 3-7                   312
+│    └─StereoConvBlock: 2-12                  --
+│    │    └─Sequential: 3-8                   156
+├─Sequential: 1-2                             --
+│    └─Linear: 2-13                           8,040
+│    └─Linear: 2-14                           41
+│    └─Sigmoid: 2-15                          --
+```
 
 ### SmoothCNN
 
@@ -161,29 +191,74 @@ We also have a group pooling layer which compute the average (or sum/min/max) ov
 
 #### Model specifications
 
+The GCNN model has 28121 learnable parameters and consists of the following layers:
+
+```
+Layer (type:depth-idx)                        Param #    
+======================================================================
+GCNNModel                                     -- 
+├─Sequential: 1-1                    		  --
+│    └─StereoZ2ConvG: 2-1 					  872
+│    └─StereoGBatchNorm2d: 2-2                16
+│    │    └─GroupNorm: 3-1  				  --
+│    │    └─GroupNorm: 3-2                    --
+│    └─ReLU: 2-3                              --
+├─Sequential: 1-2                             --
+│    └─StereoGMaxPool2d: 2-4                  --
+│    └─StereoGConvBlock: 2-5                  --
+│    │    └─Sequential: 3-3                   9,240
+│    └─StereoGConvBlock: 2-6                  --
+│    │    └─Sequential: 3-4                   4,632
+│    └─StereoGMaxPool2d: 2-7                  --
+│    └─StereoGConvBlock: 2-8                  --
+│    │    └─Sequential: 3-5                   2,328
+│    └─StereoGConvBlock: 2-9                  --
+│    │    └─Sequential: 3-6                   1,176
+│    └─StereoGMaxPool2d: 2-10                 --
+│    └─StereoGConvBlock: 2-11                 --
+│    │    └─Sequential: 3-7                   1,176
+│    └─StereoGConvBlock: 2-12                 --
+│    │    └─Sequential: 3-8                   600
+│    └─StereoGAveragePool: 2-13               --
+├─Sequential: 1-3                             --
+│    └─Linear: 2-14                           8,040
+│    └─ReLU: 2-15                             --
+│    └─Linear: 2-16                           41
+│    └─Sigmoid: 2-17                          --
+======================================================================
+```
+
 ## Training and final results
 
-All models were trained with the Adam optimizer and a batch size of 16.
+All models were trained with the Adam optimizer (with learning rate 1e-4 and weight decay 1e-2) and a batch size of 16. Validation was performed four times every epoch and the training early stopped if there where no improvement (hysteresis set to 0.01) in validation accuracy for 20 validation steps (5 epochs).
 
 ### Loss and accuracies during training
 
 ![Loss and accuracy CNN](figs/cnn_loss_plot.png)
-**Figure:** Loss and accuracy for training and validation data for the CNN model.
+**Figure:** Loss and accuracy for training and validation data for the CNN model. The model trained for 46 epochs before the early stopper terminated the training. The mean time used for each epoch (including validation steps) was 7.19 seconds.
 
 ![Loss and accuracy CNN](figs/smoothcnn_loss_plot.png)
-**Figure:** Loss and accuracy for training and validation data for the SmoothCNN model.
+**Figure:** Loss and accuracy for training and validation data for the SmoothCNN model. The model trained for 34 epochs before the early stopper terminated the training. The mean time used for each epoch (including validation steps) was 8.86 seconds.
 
 ![Loss and accuracy CNN](figs/gcnn_loss_plot.png)
-**Figure:** Loss and accuracy for training and validation data for the GCNN model.
+**Figure:** Loss and accuracy for training and validation data for the GCNN model. The model trained for the maximum number of epochs set to 50 and was not terminated by the early stopper. The mean time used for each epoch (including validation steps) was 13.5 seconds.
 
 ### Accuracies on test data
 
 The following table shows the performance of each model on the test dataset:
 
-|Model|Test Accuracy|Test Loss|
-|-|-|-|
-|**CNN**|||
-|**SmoothCNN**|||
-|**GCNN**|||
+|Model|Test Accuracy|Mean epoch time|
+|-|-|-|-|
+|**CNN**|0.9265|*7.19s*|
+|**SmoothCNN**|0.9638|8.86s|
+|**GCNN**|*0.9737*|13.50s|
 
 ## Concluding remarks
+
+When using more training data, the standard CNN network easily gives a model with >99% test accuracy leaving little room for improvement. To make the task more challenging, we use only 400 images in our training dataset. Still, we only see a slight increase in test accuracies when evaluating the SmoothCNN and the GCNN models. The CNN network is also the fastest of the three models, both in training and evaluation. The SmoothCNN is a sort of all-rounder performing better than the standard CNN and being faster than the GCNN. It should be noted that there likely is room for optimizing the implementation of the group equivariant layers.
+
+It would be interesting to compare the models on an even more challenging task such as predicting depth maps from the stereo images. Another task we could test is the rotated (and/or mirrored) MNIST dataset. Even though the handwritten digit six is a transformed version of the digit nine, it would be interesting to see if the GCNN could differentiate them based subtle differences in how we (humans) write the different digits.
+
+Of course, there is room for experimentation when it comes to architecture and hyper-parameters. Since the sum of two equivariant layers is equivariant, we can also create residual blocks allowing for deeper networks by reducing the risk of vanishing gradients. We could also try to train the standard CNN model with data augmentation and compare to the GCNN model.
+
+The code provided for the GCNN network can easily be modified to work with other finite groups and regular images.

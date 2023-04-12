@@ -44,3 +44,17 @@ config_smoothcnn = {
                 "loss_plot_file" : join(figs_path, "smoothcnn_loss_plot.png"),
                 "earlystop_limit" : 20
             }
+
+# Group equivariant CNN
+config_gcnn = {
+                "name" : "GCNN", 
+                "batch_size" : 16,
+                "lr" : 1e-4,
+                "epochs" : 50,
+                "val_per_epoch" : 4,
+                "checkpoint_file" : join(checkpoints_path, "gcnn.pth"),
+                "loss_plot_file" : join(figs_path, "gcnn_loss_plot.png"),
+                "earlystop_limit" : 20
+            }
+
+configs = [config_cnn, config_smoothcnn, config_gcnn]
