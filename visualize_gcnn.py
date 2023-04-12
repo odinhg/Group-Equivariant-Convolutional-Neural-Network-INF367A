@@ -36,7 +36,11 @@ a1_r, a2_r, a3_r, a4_r = x1_r[0].detach().numpy(), x2_r[0].detach().numpy(), x3_
 
 a1 = np.hstack([np.mean(a1, axis=1)[i,0] for i in range(a1.shape[0])])
 a1_r = np.hstack([np.mean(a1_r, axis=1)[i,0] for i in range(a1_r.shape[0])])
-plt.imshow(np.vstack([a1, a1_r]))
+fig = plt.figure()
+ax = plt.Axes(fig, [0., 0., 1., 1.])
+ax.set_axis_off()
+fig.add_axes(ax)
+ax.imshow(np.vstack([a1, a1_r]), cmap="gray")
 plt.savefig("activations_layer_1.png")
 
 """
