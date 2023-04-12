@@ -34,11 +34,12 @@ x_r =d2_r(batch[0]).detach().numpy()
 a1, a2, a3, a4 = x1[0].detach().numpy(), x2[0].detach().numpy(), x3[0].detach().numpy(), x4[0].detach().numpy()
 a1_r, a2_r, a3_r, a4_r = x1_r[0].detach().numpy(), x2_r[0].detach().numpy(), x3_r[0].detach().numpy(), x4_r[0].detach().numpy()
 
-a1 = np.hstack([a1[i,0,0] for i in range(a1.shape[0])])
-a1_r = np.hstack([a1_r[i,0,0] for i in range(a1_r.shape[0])])
+a1 = np.hstack([np.mean(a1, axis=1)[i,0] for i in range(a1.shape[0])])
+a1_r = np.hstack([np.mean(a1_r, axis=1)[i,0] for i in range(a1_r.shape[0])])
 plt.imshow(np.vstack([a1, a1_r]))
 plt.savefig("activations_layer_1.png")
 
+"""
 a2 = np.hstack([a2[i,0,0] for i in range(a2.shape[0])])
 a2_r = np.hstack([a2_r[i,0,0] for i in range(a2_r.shape[0])])
 plt.imshow(np.vstack([a2, a2_r]))
@@ -51,3 +52,4 @@ plt.savefig("activations_layer_3.png")
 
 plt.imshow(np.vstack([a4[0,0], a4_r[0,0]]))
 plt.savefig("activations_layer_4_invariant.png")
+"""
