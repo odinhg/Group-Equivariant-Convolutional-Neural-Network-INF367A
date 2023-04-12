@@ -182,6 +182,7 @@ In practice, the lifting convolution is implemented by performing normal convolu
 #### Group convolution
 
 Once our stereo images (signals on $\Omega$) are lifted to signals on $G$ we can perform group convolution. Group convolution is a $G$-equivariant operator $\mathcal{X}(G,\mathbb{R}^C)\to\mathcal{X}(G,\mathbb{R}^{C'})$ mapping a signal $x$ on $G$ to the convolution (or correlation) 
+
 $$
 x\star\psi(g)=\sum_{p\in G}\sum_{k=1}^{C}x^k(p)\psi^k(g^{-1}p).
 $$
