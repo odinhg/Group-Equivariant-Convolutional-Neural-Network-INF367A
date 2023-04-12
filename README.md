@@ -69,7 +69,7 @@ The actual implementation of the group actions can be found in `utils/group.py`.
 
 We now give a more theoretical perspective on the action of $D_2$ on the stereo images. 
 
-Let $h,w\in\mathbb{N}$, set $I=\mathbb{Z}_H\times\mathbb{Z}_W$ and write $\Omega=I^2\simeq\mathbb{Z}_H\times\mathbb{Z}_W\times\mathbb{Z}_H\times\mathbb{Z}_W$. We can view a single (RGB) stereo image as a function $\omega\colon\Omega\to\mathbb{R}^3$. We call such functions signals on the domain $\Omega$ and denote the vector space of all such functions by $\mathcal{X}(\Omega, \mathbb{R}^3)$.
+Let $H,W\in\mathbb{N}$, set $I=\mathbb{Z}_H\times\mathbb{Z}_W$ and write $\Omega=I^2\simeq\mathbb{Z}_H\times\mathbb{Z}_W\times\mathbb{Z}_H\times\mathbb{Z}_W$. We can view a single (RGB) stereo image as a function $\omega\colon\Omega\to\mathbb{R}^3$. We call such functions signals on the domain $\Omega$ and denote the vector space of all such functions by $\mathcal{X}(\Omega, \mathbb{R}^3)$.
 
 ### Group action of $D_2$ on $\Omega$
 Let $p=(a,b,c,d)$ be an element of $\Omega$ and define the group action
