@@ -30,10 +30,13 @@ weights = model.g_conv_1[0].layers[0].weight[:,0].detach().numpy()
 print(weights.shape)
 #[4, 16, 2, 3, 3]
 
-channel = 0
 view = 0
+channels = []
+for channel in range(16):
+    single_channel_weights = np.hstack([weights[g,channel,view] for g in range(weights.shape[0])])
+    channels.append(single_channel_weights)
 
-single_channel_weights = np.hstack([weights[g,channel,view] for g in range(weights.shape[0])])
-print(single_channel_weights)
-plt.imshow(single_channel_weights)
+channels = np.vstack(channels)
+
+plt.imshow(channels)
 plt.savefig("weights.png")
