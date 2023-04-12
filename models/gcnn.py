@@ -59,3 +59,10 @@ class GCNNModel(nn.Module):
         x = self.fc(x)
         x = x.view(-1)
         return x
+
+    def get_activations(self, x):
+        x1 = self.lifting_conv(x)
+        x2 = self.g_conv_1(x1)
+        x3 = self.g_conv_2(x2)
+        x4 = self.g_conv_3(x3)
+        return (x1, x2, x3, x4)

@@ -26,17 +26,19 @@ for data in train_dl:
     batch, _ = data[0], data[1]
     break
 
-weights = model.g_conv_1[0].layers[0].weight[:,0].detach().numpy()
-print(weights.shape)
-#[4, 16, 2, 3, 3]
+x1, x2, x3, x4 = model.get_activations(batch)
 
-view = 0
-channels = []
-for channel in range(16):
-    single_channel_weights = np.hstack([weights[g,channel,view] for g in range(weights.shape[0])])
-    channels.append(single_channel_weights)
+x = batch[0].detach().numpy()
+a1, a2, a3, a4 = x1[0].detach().numpy(), x2[0].detach().numpy(), x3[0].detach().numpy(), x4[0].detach().numpy()
 
-channels = np.vstack(channels)
+a1 = np.hstack([a1[i,0,0] for i in range(a1.shape[0])])
+plt.imshow(a1)
+plt.savefig("activations_layer_1.png")
 
-plt.imshow(channels)
-plt.savefig("weights.png")
+a2 = np.hstack([a2[i,0,0] for i in range(a2.shape[0])])
+plt.imshow(a2)
+plt.savefig("activations_layer_2.png")
+
+a3 = np.hstack([a3[i,0,0] for i in range(a3.shape[0])])
+plt.imshow(a3)
+plt.savefig("activations_layer_3.png")
