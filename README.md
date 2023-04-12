@@ -27,6 +27,8 @@ In practice, each view is resized to 400x200 (WxH) to reduce memory requirements
 
 ## Symmetries
 
+We now describe the symmetries that we want the model to be invariant under.
+
 ### Dihedral group $D_2$
 
 The symmetry group of a (non-square) rectangle is the dihedral group $D_2$, isomorphic to the Klein four-group (also known as the Vierergruppe) $\mathbb{Z}_2\times\mathbb{Z}_2$. Geometrically, the group $D_2$ can be described by the following symmetries:
@@ -50,6 +52,8 @@ We could let two copies of $D_2$ act on the left and right views independently. 
 ![Group action on stereo image](./docs/symmetry_group.png)
 **Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
+The following table shows the different symmetries applied to an example image:
+
 |Group actions visualized|
 |---|
 |![Original image](figs/original.png)|
@@ -63,7 +67,7 @@ We could let two copies of $D_2$ act on the left and right views independently. 
 
 The actual implementation of the group actions can be found in `utils/group.py`. The functions and the relations between them are then given to the `Group` class constructor as a list of functions and a Cayley table, respectively. The group equivariant layers then take an instance of the `Group` class as the first argument.
 
-**Remark:** In the first implementation, the two views were stacked side-by-side and treated as a single rectangle with the natural $D_2$-action. However, this does not make sense when considering translations. This is the reason both views are treated separately.
+**Remark:** In the first implementation, the two views were stacked side-by-side and treated as a single rectangle with the natural $D_2$-action. However, this does not really make sense when considering translations. This is the reason both views are treated separately.
 
 ## Stereo images as signals on $\Omega$
 
@@ -99,7 +103,7 @@ Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(
 
 **Note:** The map $D_2\to\operatorname{Aut} \mathcal{X}(\Omega)$ defined by $g\mapsto \psi(g, -)$ is nothing but the (left) regular representation of $D_2$ on the vector space $\mathcal{X}(\Omega)$.
 
-In practice, a stereo image is represented by a tensor of shape $(3,2,H,W)$, and the symmtries are implemented as functions acting on the last three dimensions using indexing and the built-in `torch.flip()` function. The group acts in exactly the same way on stereo feature maps and weights (kernels).
+In practice, a stereo image is represented by a tensor of shape $(3,2,H,W)$, and the symmtries are implemented as functions acting on the last three dimensions using indexing and the built-in `torch.flip()` function. The group acts in exactly the same way on stereo feature maps and weights (kernels) since these can also be viewed as signals on the domain $\Omega$ or the affine group.
 
 ## Model descriptions
 
@@ -107,7 +111,7 @@ In practice, a stereo image is represented by a tensor of shape $(3,2,H,W)$, and
 
 The CNN model is more or less a standard CNN network. The only difference is that we treat the two views, left and right, separately when performing convolution, pooling and batch normalization. In other words, the right and left views have their own set of weights and biases. Convolution, max pooling and batch normalization layers for stereo images are implemented in `models/stereoconv.py`. We use circular padding on each view (wrapping around in both directions). The implementation of the CNN model can be found in `models/cnn.py`.
 
-It is well-known and not hard to see that the convolutional layers are equivariant under translations. The idea for the SmoothCNN model is to force the CNN model to be invariant under symmetries as well. In the GCNN model, we build $G$-equivariant layers and force invariance later in the network.
+It is hard to believe that convolution is equivariant under translations. The idea for the SmoothCNN model is to force the CNN model to be invariant under symmetries. In the GCNN model, we build $G$-equivariant layers and force invariance later in the network by pooling/averaging over the group dimension.
 
 The CNN model has 28637 learnable parameters and consists of the following layers:
 
@@ -145,7 +149,7 @@ CNNModel                                      --
 
 ### SmoothCNN
 
-We now describe the most naive approach to achieving a (non-trivial) $G$-invariant network. In general, for a (locally compact) group $G$, we can smooth $f_\xi$ by integrating over $G$ with respect to the Haar measure on $G$. In our case, where $G$ is finite (or more generally, discrete), the Haar measure on $G$ is just the counting measure. Given a finite group $G$ acting on the space of signals, and a network $f_\xi\colon\mathcal{X}(\Omega)\to\mathbb{R}$, define the *smoothed version* of $f_\xi$, denoted by $\bar{f_\xi}$ by letting $\bar{f_\xi}(x)=\frac{1}{|G|}\sum_{\tau\in G}f(gx)$. For any $\sigma\in G$ we easily see that $\bar{f_\xi}(\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau x)=\bar{f_\xi}(x)$ showing that the smoothed network is $G$-invariant.
+We now describe the most naive approach to obtain a (non-trivial) $G$-invariant network. In general, for a (locally compact) group $G$, we can smooth $f_\xi$ by integrating over $G$ with respect to the Haar measure on $G$. In our case, where $G$ is finite (or more generally, discrete), the Haar measure on $G$ is just the counting measure. Given a finite group $G$ acting on the space of signals, and a network $f_\xi\colon\mathcal{X}(\Omega)\to\mathbb{R}$, define the *smoothed version* of $f_\xi$, denoted by $\bar{f_\xi}$ by letting $\bar{f_\xi}(x)=\frac{1}{|G|}\sum_{\tau\in G}f(gx)$. For any $\sigma\in G$ we easily see that $\bar{f_\xi}(\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau x)=\bar{f_\xi}(x)$ showing that the smoothed network is $G$-invariant.
 
 ![SmoothCNN model](docs/smoothed_cnn_diagram.png)
 **Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model. (The "photo" icon is from www.flaticon.com by the user Freepik.)
@@ -202,7 +206,7 @@ We also have a group pooling layer which compute the average (or sum/min/max) ov
 
 #### Model specifications
 
-The GCNN model has 28121 learnable parameters and consists of the following layers:
+The GCNN model has 28121 learnable parameters (slightly less than the CNN and SmoothCNN models) and consists of the following layers:
 
 ```
 Layer (type:depth-idx)                        Param #    
