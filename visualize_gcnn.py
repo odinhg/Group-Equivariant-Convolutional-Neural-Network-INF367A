@@ -27,14 +27,19 @@ for data in train_dl:
     break
 
 x1, x2, x3, x4 = model.get_activations(batch)
+x1_r, x2_r, x3_r, x4_r = model.get_activations(d2_r(batch))
 
 x = batch[0].detach().numpy()
+x_r =d2_r(batch[0]).detach().numpy()
 a1, a2, a3, a4 = x1[0].detach().numpy(), x2[0].detach().numpy(), x3[0].detach().numpy(), x4[0].detach().numpy()
+a1_r, a2_r, a3_r, a4_r = x1_r[0].detach().numpy(), x2_r[0].detach().numpy(), x3_r[0].detach().numpy(), x4_r[0].detach().numpy()
 
 a1 = np.hstack([a1[i,0,0] for i in range(a1.shape[0])])
-plt.imshow(a1)
+a1_r = np.hstack([a1_r[i,0,0] for i in range(a1_r.shape[0])])
+plt.imshow(np.vstack([a1, a1_r]))
 plt.savefig("activations_layer_1.png")
 
+"""
 a2 = np.hstack([a2[i,0,0] for i in range(a2.shape[0])])
 plt.imshow(a2)
 plt.savefig("activations_layer_2.png")
@@ -42,3 +47,4 @@ plt.savefig("activations_layer_2.png")
 a3 = np.hstack([a3[i,0,0] for i in range(a3.shape[0])])
 plt.imshow(a3)
 plt.savefig("activations_layer_3.png")
+"""
