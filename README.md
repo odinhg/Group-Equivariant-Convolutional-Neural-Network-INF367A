@@ -248,7 +248,7 @@ All models were trained with the Adam optimizer (with learning rate 1e-4 and wei
 The following table shows the performance of each model on the test dataset:
 
 |Model|Test Accuracy|Mean epoch time|
-|-|-|-|-|
+|-|-|-|
 |**CNN**|0.9265|*7.19s*|
 |**SmoothCNN**|0.9638|8.86s|
 |**GCNN**|*0.9737*|13.50s|
