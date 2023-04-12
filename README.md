@@ -140,6 +140,7 @@ CNNModel                                      --
 │    └─Linear: 2-13                           8,040
 │    └─Linear: 2-14                           41
 │    └─Sigmoid: 2-15                          --
+======================================================================
 ```
 
 ### SmoothCNN
@@ -241,17 +242,17 @@ All models were trained with the Adam optimizer (with learning rate 1e-4 and wei
 **Figure:** Loss and accuracy for training and validation data for the SmoothCNN model. The model trained for 34 epochs before the early stopper terminated the training. The mean time used for each epoch (including validation steps) was 8.86 seconds.
 
 ![Loss and accuracy CNN](figs/gcnn_loss_plot.png)
-**Figure:** Loss and accuracy for training and validation data for the GCNN model. The model trained for the maximum number of epochs set to 50 and was not terminated by the early stopper. The mean time used for each epoch (including validation steps) was 13.5 seconds.
+**Figure:** Loss and accuracy for training and validation data for the GCNN model. The model trained for the maximum number of epochs set to 50 and was not terminated by the early stopper. The mean time used for each epoch (including validation steps) was 12.27 seconds.
 
 ### Accuracies on test data
 
-The following table shows the performance of each model on the test dataset:
+The following table shows the performance of each model on the test dataset and the (mean) time spent on each epoch during training:
 
 |Model|Test Accuracy|Mean epoch time|
 |-|-|-|
-|**CNN**|0.9265|*7.19s*|
-|**SmoothCNN**|0.9638|8.86s|
-|**GCNN**|*0.9737*|13.50s|
+|*CNN*|0.9265|**7.19s**|
+|*SmoothCNN*|0.9638|8.86s|
+|*GCNN*|**0.9737**|12.27|
 
 ## Concluding remarks
 

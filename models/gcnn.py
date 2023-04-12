@@ -14,26 +14,33 @@ class GCNNModel(nn.Module):
                                 StereoZ2ConvG(group, 3, 16, 3, 1),
                                 StereoGBatchNorm2d(group, 16),
                                 nn.ReLU(),
-                                # (B, n, 32, 2, 200, 400)
+                                # (B, n, 16, 2, 200, 400)
+                                StereoGMaxPool2d(group, 10, 10),
+                                # (B, n, 16, 2, 20, 40)
                                 )
 
-        self.g_conv_layers = nn.Sequential(
-                                StereoGMaxPool2d(group, 10, 10),
-                                # (B, n, 32, 2, 40, 80)
-                                # (B, n, 16, 2, 20, 40)
+        self.g_conv_1 = nn.Sequential(
                                 StereoGConvBlock(group, 16, 8, 3, 1),
                                 StereoGConvBlock(group, 8, 8, 3, 1),
                                 StereoGMaxPool2d(group, 2, 2),
                                 # (B, n, 8, 2, 10, 20)
+                                )
+
+        self.g_conv_2 = nn.Sequential(
                                 StereoGConvBlock(group, 8, 4, 3, 1),
                                 StereoGConvBlock(group, 4, 4, 3, 1),
                                 StereoGMaxPool2d(group, 2, 2),
+                                # (B, n, 4, 2, 5, 10)
+                                )
+
+        self.g_conv_3 = nn.Sequential(
                                 StereoGConvBlock(group, 4, 4, 3, 1),
-                                # (B, 4, 2, 5, 10)
                                 StereoGConvBlock(group, 4, 2, 3, 1),
+                                # (B, n, 2, 2, 5, 10)
                                 StereoGAveragePool(group, reduction="mean"),
                                 # 2 * 2 * 5 * 10 = 200 features out
                                 )
+
         self.fc = nn.Sequential(
                         nn.Linear(200, 40),
                         nn.ReLU(),
@@ -45,7 +52,9 @@ class GCNNModel(nn.Module):
 
     def forward(self, x):
         x = self.lifting_conv(x)
-        x = self.g_conv_layers(x)
+        x = self.g_conv_1(x)
+        x = self.g_conv_2(x)
+        x = self.g_conv_3(x)
         x = torch.flatten(x, start_dim=1)
         x = self.fc(x)
         x = x.view(-1)
