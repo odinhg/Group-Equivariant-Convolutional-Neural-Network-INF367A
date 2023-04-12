@@ -39,12 +39,15 @@ a1_r = np.hstack([a1_r[i,0,0] for i in range(a1_r.shape[0])])
 plt.imshow(np.vstack([a1, a1_r]))
 plt.savefig("activations_layer_1.png")
 
-"""
 a2 = np.hstack([a2[i,0,0] for i in range(a2.shape[0])])
-plt.imshow(a2)
+a2_r = np.hstack([a2_r[i,0,0] for i in range(a2_r.shape[0])])
+plt.imshow(np.vstack([a2, a2_r]))
 plt.savefig("activations_layer_2.png")
 
 a3 = np.hstack([a3[i,0,0] for i in range(a3.shape[0])])
-plt.imshow(a3)
+a3_r = np.hstack([a3_r[i,0,0] for i in range(a3_r.shape[0])])
+plt.imshow(np.vstack([a3, a3_r]))
 plt.savefig("activations_layer_3.png")
-"""
+
+plt.imshow(np.vstack([a4[0,0], a4_r[0,0]]))
+plt.savefig("activations_layer_4_invariant.png")
