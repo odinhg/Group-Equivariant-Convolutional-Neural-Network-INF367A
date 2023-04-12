@@ -167,7 +167,13 @@ x&\mapsto x\star\psi
 \end{align*}
 $$
 
-where $x\star\psi(g)=\sum_{p\in\Omega}\sum_{k=1}^{3}x^k(p)\psi^k(g^{-1}p)$. In practice, we have more than one feature map (out channel). The definition is the same, but with an additional variable indexing the out channels.
+where 
+
+$$
+x\star\psi(g)=\sum_{p\in\Omega}\sum_{k=1}^{3}x^k(p)\psi^k(g^{-1}p)$.
+$$
+
+In practice, we have more than one feature map (out channel). The definition is the same, but with an additional variable indexing the out channels.
 
 The lifting convolutional layer is $G$-equivariant. That is, $((h\cdot x)\star\psi)(g) = (h\cdot(x\star\psi))(g)$.
 
@@ -175,9 +181,12 @@ In practice, the lifting convolution is implemented by performing normal convolu
 
 #### Group convolution
 
-Once our stereo images (signals on $\Omega$) are lifted to signals on $G$ we can perform group convolution. Group convolution is a $G$-equivariant operator $\mathcal{X}(G,\mathbb{R}^C)\to\mathcal{X}(G,\mathbb{R}^{C'})$ mapping a signal $x$ on $G$ to the convolution (or correlation) $x\star\psi(g)=\sum_{p\in G}\sum_{k=1}^{C}x^k(p)\psi^k(g^{-1}p)$.
+Once our stereo images (signals on $\Omega$) are lifted to signals on $G$ we can perform group convolution. Group convolution is a $G$-equivariant operator $\mathcal{X}(G,\mathbb{R}^C)\to\mathcal{X}(G,\mathbb{R}^{C'})$ mapping a signal $x$ on $G$ to the convolution (or correlation) 
+$$
+x\star\psi(g)=\sum_{p\in G}\sum_{k=1}^{C}x^k(p)\psi^k(g^{-1}p).
+$$
 
-Note that we are not only moving the filter in the horizontal and vertical dimensions, but also in the group dimension. This makes the group convolutional layer $G$-equivariant.
+Note that since $p$ now ranges over $G$, not only $\Omega$, we are not only moving the filter in the horizontal and vertical dimensions, but also in the group dimension. This makes the group convolutional layer $G$-equivariant.
 
 #### Batch normalization and pooling
 
