@@ -23,7 +23,7 @@ The dataset consists of 1000 stereo images each consisting of one left and one r
 
 **Note:** The two cameras used were mounted on top of a car, with one in the center and one on the right hand side, 54 cm apart. Still, we will call the center and right images the *left view* and the *right view*, respectively.
 
-In practice, each view is resized to 400x200 (WxH) reduce memory requirements and to speed up loading data to GPU. The data loader returns tensors of shape $(B,3,2,200,400)$ where $B$ is the chosen batch size (default: 16). We split the 1000 stereo images into training (400 images), validation (300 images) and test data (300 images). Means and standard deviations are pre-computed (pixel-wise for each view) on the training dataset, and used for normalization. The actual implementation can be found in `utils/dataloader.py`.
+In practice, each view is resized to 400x200 (WxH) to reduce memory requirements and to speed up loading data to GPU. The data loader returns tensors of shape $(B,3,2,200,400)$ where $B$ is the chosen batch size (default: 16). We split the 1000 stereo images into training (400 images), validation (300 images) and test data (300 images). Means and standard deviations are pre-computed (pixel-wise for each view) on the training dataset, and used for normalization. The actual implementation can be found in `utils/dataloader.py`.
 
 ## Symmetries
 
@@ -73,19 +73,24 @@ Let $h,w\in\mathbb{N}$, set $I=\mathbb{Z}_H\times\mathbb{Z}_W$ and write $\Omega
 
 ### Group action of $D_2$ on $\Omega$
 Let $p=(a,b,c,d)$ be an element of $\Omega$ and define the group action
+
 $$
 D_2\times\Omega\to\Omega
 $$
+
 $$
 (g, p)\mapsto g\cdot p
 $$
+
 on the generators $m_v$ and $m_h$ by letting $m_v\cdot p = (a,W-b, c,W-d)$ and $m_h\cdot p = (H-c, d, H-a, b)$. We then get that $r\cdot p = (H-c, W-d, H-a,W-b)$ and $e\cdot p = p$ by extending the above map to a group action.
 
 ### Lifting the group action to signals
 We lift the $D_2$-action on $\Omega$ to a $D_2$-action on $\mathcal{X}(\Omega)$ as follows:
+
 $$
 \psi\colon D_2\times\mathcal{X}(\Omega)\to\mathcal{X}(\Omega)
 $$
+
 $$
 (g,x)\mapsto \left[g\cdot x\colon p\mapsto x(g^{-1}\cdot p)\right].
 $$
@@ -100,9 +105,10 @@ In practice, a stereo image is represented by a tensor of shape $(3,2,H,W)$, and
 
 ### CNN
 
-The CNN model is more or less a standard CNN network. The only difference is that we treat the two views, left and right, separately when performing convolution, pooling and batch normalization. In other words, the right and left views have their own set of weights and biases. Convolution, max pooling and batch normalization layers for stereo images are implemented in `models/stereoconv.py`. We use circular padding on each view (wrapping around in both directions).
+The CNN model is more or less a standard CNN network. The only difference is that we treat the two views, left and right, separately when performing convolution, pooling and batch normalization. In other words, the right and left views have their own set of weights and biases. Convolution, max pooling and batch normalization layers for stereo images are implemented in `models/stereoconv.py`. We use circular padding on each view (wrapping around in both directions). The implementation of the CNN model can be found in `models/cnn.py`.
 
 It is well-known and not hard to see that the convolutional layers are equivariant under translations. The idea for the SmoothCNN model is to force the CNN model to be invariant under symmetries as well. In the GCNN model, we build $G$-equivariant layers and force invariance later in the network.
+
 
 **TODO: Insert baseline CNN model specs here.**
 
@@ -113,11 +119,11 @@ We now describe the most naive approach to achieving a (non-trivial) $G$-invaria
 ![SmoothCNN model](docs/smoothed_cnn_diagram.png)
 **Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model. (The "photo" icon is from www.flaticon.com by the user Freepik.)
 
-The SmoothCNN model is just the CNN model with a modified `forward()` method averaging the output probabilities over all transformed version of a stereo image.
+The SmoothCNN model is just the CNN model with a modified `forward()` method averaging the output probabilities over all transformed version of a stereo image. The implementation can be found in `models/smoothcnn.py`.
 
 ### GCNN
 
-We now discuss the group equivariant convolutional neural network.
+We will now discuss the group equivariant convolutional neural network. Implementations of the different layers mentioned below can be found in `models/groupconv.py` and the final model can be found in `models/gcnn.py`.
 
 #### Lifting convolution
 
@@ -132,40 +138,52 @@ $$
 
 where $x\star\psi(g)=\sum_{p\in\Omega}\sum_{k=1}^{3}x^k(p)\psi^k(g^{-1}p)$. In practice, we have more than one feature map (out channel). The definition is the same, but with an additional variable indexing the out channels.
 
-**Todo: say something about innter products, Haar measure**
-
-
-
-
-##### Practical implementation
+The lifting convolutional layer is $G$-equivariant. That is, $((h\cdot x)\star\psi)(g) = (h\cdot(x\star\psi))(g)$.
 
 In practice, the lifting convolution is implemented by performing normal convolution with all transformed versions of the filter $\psi$. This adds a "group dimension" to the output signal. If the input shape is $(C,2,H,W)$, then the output shape is $(4,C,2,H,W)$ where the $4$ is the order of the symmetry group $D_2$.
 
-**Todo: How are are signals represented? How are kernels represented and how we let the group act on the filters, not the input.**
-
 #### Group convolution
 
-Once our signals are lifted to signals on $G$ we can perform group convolution. Group convolution is a $G$-equivariant operator $\mathcal{X}(G,\mathbb{R}^C)\to\mathcal{X}(G,\mathbb{R}^{C'})$ mapping a signal $x$ on $G$ to the convolution (or correlation) $x\star\psi(g)=\sum_{p\in G}\sum_{k=1}^{C}x^k(p)\psi^k(g^{-1}p)$.
+Once our stereo images (signals on $\Omega$) are lifted to signals on $G$ we can perform group convolution. Group convolution is a $G$-equivariant operator $\mathcal{X}(G,\mathbb{R}^C)\to\mathcal{X}(G,\mathbb{R}^{C'})$ mapping a signal $x$ on $G$ to the convolution (or correlation) $x\star\psi(g)=\sum_{p\in G}\sum_{k=1}^{C}x^k(p)\psi^k(g^{-1}p)$.
 
-**Todo: say something about innter products, Haar measure**
+Note that we are not only moving the filter in the horizontal and vertical dimensions, but also in the group dimension. This makes the group convolutional layer $G$-equivariant.
 
-##### Practical implementation
+#### Batch normalization and pooling
 
-**Todo: How are are signals represented? How are kernels represented and how we let the group act on the filters, not the input.**
+Batch normalization is done in a similar way to the case of stereo images. However, we only have one scale and one bias parameter for each $G$-feature map. This makes batch normalization $G$-invariant as noted in the paper by Cohen and Welling. Max pooling is done separately for each  $G$-feature map.
 
-#### Group averaging, forcing invariance and other layers
+We also have a group pooling layer which compute the average (or sum/min/max) over the group dimension. This layer can also be set to average over all transformed versions of the input to force a $G$-invariant output. This is done right before the last fully connected layers. In this way, we preserve $G$-equivariance almost through the entire network.
 
-##### Batch normalization
+#### Equivariance illustrated
 
-##### Max pooling
-
-##### Group averaging
-
-#### Equivariance illustrated 
-![Equivariance activation maps](g_conv_rotation_equivariant_example.png)
+![Equivariance activation maps](docs/g_conv_rotation_equivariant_example.png)
 **Figure:** A simple $G$-equivariant model consisting of one lifting convolutional layer followed by two $G$-convolutional layers. The weights were randomly initialized. Top left: original stereo image. Top right: rotated stereo image. Bottom left: output of the model with the original image as input. Bottom right: output of the model with the rotated image as input. Observe that the output of the rotated image is a rotated version of the output of the original image. In other words, this demonstrates the equivariance of the model.
 
+#### Model specifications
 
-## Results
+## Training and final results
+
+All models were trained with the Adam optimizer and a batch size of 16.
+
+### Loss and accuracies during training
+
+![Loss and accuracy CNN](figs/cnn_loss_plot.png)
+**Figure:** Loss and accuracy for training and validation data for the CNN model.
+
+![Loss and accuracy CNN](figs/smoothcnn_loss_plot.png)
+**Figure:** Loss and accuracy for training and validation data for the SmoothCNN model.
+
+![Loss and accuracy CNN](figs/gcnn_loss_plot.png)
+**Figure:** Loss and accuracy for training and validation data for the GCNN model.
+
+### Accuracies on test data
+
+The following table shows the performance of each model on the test dataset:
+
+|Model|Test Accuracy|Test Loss|
+|-|-|-|
+|**CNN**|||
+|**SmoothCNN**|||
+|**GCNN**|||
 
 ## Concluding remarks
