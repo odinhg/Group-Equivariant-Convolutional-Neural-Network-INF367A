@@ -25,7 +25,7 @@ def numpy_image_to_tensor(x):
     y = torch.permute(y, (3, 0, 1, 2))
     return y
 
-def tensor_to_numpy_image(x: torch.FloatTensor) -> np.ndarray:
+def tensor_to_numpy_image(x: torch.Tensor) -> np.ndarray:
     """
         Convert tensor image of shape (3, 2, H, W) with values 0 - 1 to numpy image with values 0 - 255.
         Output numpy array of shape (2, H, W, 3).
@@ -33,7 +33,11 @@ def tensor_to_numpy_image(x: torch.FloatTensor) -> np.ndarray:
     y = torch.permute(x, (1, 2, 3, 0))
     return (y.cpu().detach() * 255).type(torch.uint8).numpy()
 
-def visualize_tensor(x: torch.FloatTensor, filename: str = "") -> None:
+def normalize_tensor(x: torch.Tensor) -> torch.Tensor:
+    return (x - x.min()) / (x.max() - x.min())
+
+
+def visualize_tensor(x: torch.Tensor, filename: str = "") -> None:
     """
         Take tensor image and display left and right view side-by-side. If filename is provided, save image instead of displaying it.
     """
