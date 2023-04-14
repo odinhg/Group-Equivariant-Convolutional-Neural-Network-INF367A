@@ -1,12 +1,12 @@
-import torch
 import torch.nn as nn
-from torchinfo import summary
-from os.path import isfile
-
-from models import StereoZ2ConvG, StereoGConv, StereoGMaxPool2d, StereoGBatchNorm2d, StereoGAveragePool, StereoGConvBlock
-from utils import create_dataloaders, Trainer, seed_random_generators, choose_model, Group, d2_r, d2_mh, d2_mv, d2_e
-from config import configs, val_fraction, test_fraction, device
+from models import StereoZ2ConvG, StereoGBatchNorm2d, StereoGAveragePool, StereoGConvBlock
+from utils import create_dataloaders, Group, d2_r, d2_mh, d2_mv, d2_e
+from config import val_fraction, test_fraction
 from utils import visualize_tensor, normalize_tensor
+
+"""
+    This script is only for generating examples illustrating group equivariance (and invariance)
+"""
 
 functions = [d2_e, d2_r, d2_mh, d2_mv]
 cayley_table = [[0,1,2,3],
@@ -21,7 +21,8 @@ class Model(nn.Module):
         self.conv1 = nn.Sequential(StereoZ2ConvG(group, 3, 8, 3, 1), StereoGBatchNorm2d(group, 8), nn.ReLU())
         self.conv2 = StereoGConvBlock(group, 8, 8, 3, 1)
         self.conv3 = StereoGConvBlock(group, 8, 3, 5, 2)
-        self.g_pool = StereoGAveragePool(group, reduction="sum")
+        self.g_pool = StereoGAveragePool(reduction="sum")
+        #self.g_pool = StereoGAveragePool(group, reduction="sum") # Force invariance
 
     def forward(self, x):
         x = self.conv1(x)
@@ -40,15 +41,17 @@ for batch in dl:
     break
 
 k = 1 # Index for image to use from batch
-g = d2_r
-
 x = images[k]
-gx = g(x) 
 out = model(images)[k]
-gout = model(g(images))[k]
+x, out= normalize_tensor(x), normalize_tensor(out)
+visualize_tensor(x, filename="docs/input_image_original.png")
+visualize_tensor(out, filename="docs/output_original.png")
 
-x, gx, out, gout = normalize_tensor(x), normalize_tensor(gx), normalize_tensor(out), normalize_tensor(gout)
-
-visualize_tensor(torch.cat([torch.cat([x,out], dim=-2), torch.cat([gx, gout, g(gout)], dim=-2)], dim=-2))
+for g in functions:
+    gx = g(x)
+    gout = model(g(images))[k]
+    gx, gout = normalize_tensor(gx), normalize_tensor(gout)
+    visualize_tensor(gx, filename=f"docs/input_image_{g.__name__}.png")
+    visualize_tensor(gout, filename=f"docs/output_{g.__name__}.png")
 
 # TODO: Save figures illustrating both equivariance and invariance (use group argument to pooling layer) of the network 

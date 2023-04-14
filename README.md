@@ -201,8 +201,36 @@ We also have a group pooling layer which compute the average (or sum/min/max) ov
 
 #### Equivariance illustrated
 
-![Equivariance activation maps](docs/g_conv_rotation_equivariant_example.png)
-**Figure:** A simple $G$-equivariant model consisting of one lifting convolutional layer followed by two $G$-convolutional layers. The weights were randomly initialized. Top left: original stereo image. Top right: rotated stereo image. Bottom left: output of the model with the original image as input. Bottom right: output of the model with the rotated image as input. Observe that the output of the rotated image is a rotated version of the output of the original image. In other words, this demonstrates the equivariance of the model.
+We create a small GCNN consisting of a lifting convolutional layer, followed by two $G$-convolutional layers and at last, a pooling layer summing over the group dimension. Using the modules implemented in `models/groupconv.py`, this is very easily accomplished:
+
+```python
+self.conv1 = nn.Sequential(StereoZ2ConvG(group, 3, 8, 3, 1), StereoGBatchNorm2d(group, 8), nn.ReLU())
+self.conv2 = StereoGConvBlock(group, 8, 8, 3, 1)
+self.conv3 = StereoGConvBlock(group, 8, 3, 5, 2)
+self.g_pool = StereoGAveragePool(reduction="sum")
+```
+
+Here we use three channels in the last convolutional layer so that we can visualize the activations as RGB images. The following illustrating examples were created by running `equivariance_testing.py`.
+
+|Symmetry: $g$|Input: $g\cdot x$|Activation: $f(g\cdot x)$|
+|-|-|-|
+|$e$|![](docs/input_image_original.png)|![](docs/output_d2_e.png)|
+|$r$|![](docs/input_image_d2_r.png)|![](docs/output_d2_r.png)|
+|$m_h$|![](docs/input_image_d2_mh.png)|![](docs/output_d2_mh.png)|
+|$m_v$|![](docs/input_image_d2_mv.png)|![](docs/output_d2_mv.png)|
+
+**Table:** Letting a symmetry act on a stereo image before applying the GCNN $f$ is the same as first applying $f$ and then acting by the symmetry. In other words, this demonstrates the $G$-equivariance property of the GCNN.
+
+Now, to force invariance under the $D_2$-action, all we have to do is to pass the group as an argument to the group pooling layer as follows:
+
+```python
+self.g_pool = StereoGAveragePool(group, reduction="sum")
+```
+
+When the group is passed to this layer, we also reduce over all transformed versions of the input. Hence, forcing the output to be invariant. In the larger GCNN model, we do this right before the last two fully connected layers preserving equivariance as deep in the network as possible. The output activation then looks as follows (regardless of which symmetry is applied to the input):
+
+![](docs/output_invariant.png)
+**Figure:** Output activation when we ask the group pooling layer to force invariance.
 
 #### Model specifications
 
