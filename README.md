@@ -19,6 +19,7 @@ The dataset consists of 1000 stereo images each consisting of one left and one r
 
 ![Sunny image](figs/image_2.png)
 ![Cloudy image](figs/image_3.png)
+
 **Figure:** Two images (index 2 and 3) from the dataset (left and right view) with labels 'sunny' and 'cloudy'.
 
 **Note:** The two cameras used were mounted on top of a car, with one in the center and one on the right hand side, 54 cm apart. Still, we will call the center and right images the *left view* and the *right view*, respectively.
@@ -49,20 +50,21 @@ The symmetry group of a (non-square) rectangle is the dihedral group $D_2$, isom
 
 We could let two copies of $D_2$ act on the left and right views independently. In that case, we would have been working with the group $D_2\times D_2\equiv \mathbb{Z}_2^4$ of order $16$. But, as the left and right views are physically coupled in the real-world, we choose to continue with a single copy of $D_2$ acting on our images as illustrated in the following figure:
 
-![Group action on stereo image](./docs/symmetry_group.png)
+![Group action on stereo image](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/symmetry_group.png)
+
 **Figure:** We have three non-trivial $D_2$-actions on a stereo image. One rotation shown in red, and two mirror symmetries. The mirror symmetries around the vertical and horizontal axes are shown in blue and green, respectively.
 
 The following table shows the different symmetries applied to an example image:
 
 |Group actions visualized|
 |---|
-|![Original image](figs/original.png)|
+|![Original image](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/original.png)|
 |**Figure:** Trivial group action, $e\cdot x$.|
-|![Rotated](figs/rotated.png)|
+|![Rotated](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/rotated.png)|
 |**Figure:** Rotation by $\pi$ CCW, $r\cdot x$.|
-|![Mirrored horizontally](figs/mirrored_horizontal.png)|
+|![Mirrored horizontally](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/mirrored_horizontal.png)|
 |**Figure:** Mirroring around the horizontal axis, $m_h\cdot x$.|
-|![Mirrored vertically](figs/mirrored_vertical.png)|
+|![Mirrored vertically](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/mirrored_vertical.png)|
 |**Figure:** Mirroring around the vertical axis, $m_v\cdot x$.|
 
 The actual implementation of the group actions can be found in `utils/group.py`. The functions and the relations between them are then given to the `Group` class constructor as a list of functions and a Cayley table, respectively. The group equivariant layers then take an instance of the `Group` class as the first argument.
@@ -101,7 +103,7 @@ $$
 
 Since in $D_2$, every element is its own inverse, we simply have that $g\cdot x(p)=x(g\cdot p)$. 
 
-**Note:** The map $D_2\to\operatorname{Aut} \mathcal{X}(\Omega)$ defined by $g\mapsto \psi(g, -)$ is nothing but the (left) regular representation of $D_2$ on the vector space $\mathcal{X}(\Omega)$.
+**Note:** The map $D_2\to\mathop{\text{Aut}} \mathcal{X}(\Omega)$ defined by $g\mapsto \psi(g, -)$ is nothing but the (left) regular representation of $D_2$ on the vector space $\mathcal{X}(\Omega)$.
 
 In practice, a stereo image is represented by a tensor of shape $(3,2,H,W)$, and the symmtries are implemented as functions acting on the last three dimensions using indexing and the built-in `torch.flip()` function. The group acts in exactly the same way on stereo feature maps and weights (kernels) since these can also be viewed as signals on the domain $\Omega$ or the affine group.
 
@@ -151,7 +153,8 @@ CNNModel                                      --
 
 We now describe the most naive approach to obtain a (non-trivial) $G$-invariant network. In general, for a (locally compact) group $G$, we can smooth $f_\xi$ by integrating over $G$ with respect to the Haar measure on $G$. In our case, where $G$ is finite (or more generally, discrete), the Haar measure on $G$ is just the counting measure. Given a finite group $G$ acting on the space of signals, and a network $f_\xi\colon\mathcal{X}(\Omega)\to\mathbb{R}$, define the *smoothed version* of $f_\xi$, denoted by $\bar{f_\xi}$ by letting $\bar{f_\xi}(x)=\frac{1}{|G|}\sum_{\tau\in G}f(gx)$. For any $\sigma\in G$ we easily see that $\bar{f_\xi}(\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau\sigma x) = \frac{1}{|G|}\sum_{\tau\in G}f_\xi(\tau x)=\bar{f_\xi}(x)$ showing that the smoothed network is $G$-invariant.
 
-![SmoothCNN model](docs/smoothed_cnn_diagram.png)
+![SmoothCNN model](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/smoothed_cnn_diagram.png)
+
 **Figure:** A diagram showing the SmoothCNN model. The function $f_\xi$ denotes the CNN model. (The "photo" icon is from www.flaticon.com by the user Freepik.)
 
 The SmoothCNN model is just the CNN model with a modified `forward()` method averaging the output probabilities over all transformed version of a stereo image. The implementation can be found in `models/smoothcnn.py`.
@@ -214,10 +217,10 @@ Here we use three channels in the last convolutional layer so that we can visual
 
 |Symmetry: $g$|Input: $g\cdot x$|Activation: $f(g\cdot x)$|
 |-|-|-|
-|$e$|![](docs/input_image_original.png)|![](docs/output_d2_e.png)|
-|$r$|![](docs/input_image_d2_r.png)|![](docs/output_d2_r.png)|
-|$m_h$|![](docs/input_image_d2_mh.png)|![](docs/output_d2_mh.png)|
-|$m_v$|![](docs/input_image_d2_mv.png)|![](docs/output_d2_mv.png)|
+|$e$|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/input_image_original.png)|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/output_d2_e.png)|
+|$r$|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/input_image_d2_r.png)|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/output_d2_r.png)|
+|$m_h$|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/input_image_d2_mh.png)|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/output_d2_mh.png)|
+|$m_v$|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/input_image_d2_mv.png)|![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/output_d2_mv.png)|
 
 **Table:** Letting a symmetry act on a stereo image before applying the GCNN $f$ is the same as first applying $f$ and then acting by the symmetry. In other words, this demonstrates the $G$-equivariance property of the GCNN.
 
@@ -229,7 +232,8 @@ self.g_pool = StereoGAveragePool(group, reduction="sum")
 
 When the group is passed to this layer, we also reduce over all transformed versions of the input. Hence, forcing the output to be invariant. In the larger GCNN model, we do this right before the last two fully connected layers preserving equivariance as deep in the network as possible. The output activation then looks as follows (regardless of which symmetry is applied to the input):
 
-![](docs/output_invariant.png)
+![](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/docs/output_invariant.png)
+
 **Figure:** Output activation when we ask the group pooling layer to force invariance.
 
 #### Model specifications
@@ -277,13 +281,16 @@ All models were trained with the Adam optimizer (with learning rate 1e-4 and wei
 
 ### Loss and accuracies during training
 
-![Loss and accuracy CNN](figs/cnn_loss_plot.png)
+![Loss and accuracy CNN](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/cnn_loss_plot.png)
+
 **Figure:** Loss and accuracy for training and validation data for the CNN model. The model trained for 46 epochs before the early stopper terminated the training. The mean time used for each epoch (including validation steps) was 7.19 seconds.
 
-![Loss and accuracy CNN](figs/smoothcnn_loss_plot.png)
+![Loss and accuracy CNN](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/smoothcnn_loss_plot.png)
+
 **Figure:** Loss and accuracy for training and validation data for the SmoothCNN model. The model trained for 34 epochs before the early stopper terminated the training. The mean time used for each epoch (including validation steps) was 8.86 seconds.
 
-![Loss and accuracy CNN](figs/gcnn_loss_plot.png)
+![Loss and accuracy CNN](https://github.com/odinhg/Group-Equivariant-Convolutional-Neural-Network-INF367A/blob/main/figs/gcnn_loss_plot.png)
+
 **Figure:** Loss and accuracy for training and validation data for the GCNN model. The model trained for the maximum number of epochs set to 50 and was not terminated by the early stopper. The mean time used for each epoch (including validation steps) was 12.27 seconds.
 
 ### Accuracies on test data
